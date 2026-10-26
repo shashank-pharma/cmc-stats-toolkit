@@ -13,6 +13,12 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-DISS-001 | Use only time points up to the first where both products reach 85%. | FDA IR dissolution guidance (1997) |
 | URS-DISS-002 | Calculate f1 and f2 from mean profiles. | FDA IR dissolution guidance (1997) |
 | URS-DISS-003 | Check CV limits (20% early, 10% later) and switch to bootstrap f2 when they fail. | FDA IR dissolution guidance (1997) |
+| URS-DISS-004 | Reject input with fewer than 12 units for either product, naming the product and its unit count. | FDA IR dissolution guidance (1997) |
+| URS-DISS-005 | Reject input when reference and test time points differ in count or in any value, listing the mismatches. | FDA IR dissolution guidance (1997) |
+| URS-DISS-006 | When both products reach 85% within 15 minutes, flag that profile comparison is usually unnecessary and give no f2 verdict. | FDA IR dissolution guidance (1997) |
+| URS-DISS-007 | Bootstrap f2 resamples units with replacement from a caller-supplied seed and resample count, reports the percentile 90% interval and records both; similar if the 5th percentile is at least 50. | Shah et al., Pharm Res 1998 - provisional, pending agency text |
+| URS-DISS-008 | Report f1 against the companion limit of 15; f2 alone decides similarity. | FDA IR dissolution guidance (1997) |
+| URS-DISS-009 | Reject ragged unit rows, non-finite or negative values, and time points that are not strictly increasing and positive. | Project policy (reject bad input loudly) |
 | URS-BE-001 | Accept bioequivalence when the 90% CI of the GMR lies within 80.00-125.00%. | ICH M13A |
 | URS-BE-002 | Analyse log values with sequence, subject(sequence), period and treatment terms. | ICH M13A; FDA BE statistics guidance |
 | URS-BE-003 | Report within-subject CV and both TOST p-values. | FDA BE statistics guidance |

@@ -20,6 +20,19 @@ DISSOLUTION_MIN_UNITS: Final[int] = 12
 DISSOLUTION_PLATEAU_PCT: Final[float] = 85.0
 CV_LIMIT_EARLY_PCT: Final[float] = 20.0
 CV_LIMIT_LATER_PCT: Final[float] = 10.0
+# FDA IR dissolution guidance (1997): earlier time points (for example up to 15 minutes) take
+# the 20% CV limit; later points take 10%
+CV_EARLY_MAX_TIME_MIN: Final[float] = 15.0
+# FDA IR dissolution guidance (1997): >= 85% within 15 minutes, profile comparison unnecessary
+RAPID_DISSOLUTION_TIME_MIN: Final[float] = 15.0
+# FDA IR dissolution guidance (1997): f1 from 0 to 15 is the companion similarity check
+F1_SIMILAR_MAX: Final[float] = 15.0
+
+# Shah et al., Pharm Res 1998 - provisional, pending agency text: percentile bootstrap f2
+# interval level; similarity when the lower bound (5th percentile) is at least F2_SIMILAR_MIN
+BOOTSTRAP_CI_LEVEL: Final[float] = 0.90
+# Project policy, not a regulatory value: input guard so the 5th/95th percentiles are stable
+BOOTSTRAP_MIN_RESAMPLES: Final[int] = 1000
 
 # ICH M13A (2024): average bioequivalence acceptance range for the 90% CI of the GMR (%)
 BE_LOWER_PCT: Final[float] = 80.00
