@@ -1,0 +1,162 @@
+{
+  "id": "GOLD-STAB-003",
+  "requirement": "URS-STAB-001, URS-STAB-002, URS-STAB-003, URS-STAB-004, URS-STAB-005, URS-STAB-008",
+  "source": "Independent R output (R version 4.6.1 (2026-06-24), base lm/anova/predict/uniroot; tests/golden/r/stability_gold.R) on dummy data supplied by the user 2026-10-27; statsmodels cross-check; published example pending (GOLD-STAB-004). Separate-slopes model uses each batch's own regression error (df = n - 2), ICH Q1E Appendix B.1 applied per batch: provisional, pending confirmation against the Q1E text.",
+  "inputs": {
+    "attribute": "Assay",
+    "unit": "% label claim",
+    "direction": "decrease",
+    "significant_change_at_accelerated": false,
+    "statistical_analysis_performed": true,
+    "lower_limit": 95.0,
+    "batches": [
+      {
+        "label": "B001",
+        "times_months": [
+          0.0,
+          3.0,
+          6.0,
+          9.0,
+          12.0,
+          18.0,
+          24.0
+        ],
+        "values": [
+          99.9,
+          99.7,
+          99.5,
+          98.6,
+          98.6,
+          97.6,
+          96.6
+        ]
+      },
+      {
+        "label": "B002",
+        "times_months": [
+          0.0,
+          3.0,
+          6.0,
+          9.0,
+          12.0,
+          18.0,
+          24.0
+        ],
+        "values": [
+          100.5,
+          99.8,
+          99.0,
+          98.9,
+          98.5,
+          97.5,
+          96.9
+        ]
+      },
+      {
+        "label": "B003",
+        "times_months": [
+          0.0,
+          3.0,
+          6.0,
+          9.0,
+          12.0,
+          18.0,
+          24.0
+        ],
+        "values": [
+          100.1,
+          99.6,
+          99.1,
+          98.2,
+          97.8,
+          96.4,
+          95.4
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "model": "separate",
+    "slopes": {
+      "F": 14.25006154,
+      "df_num": 2,
+      "df_den": 15,
+      "p": 0.00034041
+    },
+    "intercepts": null,
+    "batch_fits": [
+      {
+        "label": "B001",
+        "intercept": 100.08922156,
+        "slope": -0.14061876,
+        "intercept_se": 0.12656493,
+        "slope_se": 0.0097897,
+        "residual_df": 5,
+        "mse": 0.04115569
+      },
+      {
+        "label": "B002",
+        "intercept": 100.22215569,
+        "slope": -0.14520958,
+        "intercept_se": 0.13652235,
+        "slope_se": 0.0105599,
+        "residual_df": 5,
+        "mse": 0.04788623
+      },
+      {
+        "label": "B003",
+        "intercept": 100.15928144,
+        "slope": -0.20159681,
+        "intercept_se": 0.07694087,
+        "slope_se": 0.00595132,
+        "residual_df": 5,
+        "mse": 0.01520958
+      }
+    ],
+    "per_batch": [
+      {
+        "label": "B001",
+        "intercept": 100.08922156,
+        "slope": -0.14061876,
+        "df": 5,
+        "t_value": 2.01504837,
+        "bound_at_0": 99.8341871,
+        "crossing_months": 32.84197599
+      },
+      {
+        "label": "B002",
+        "intercept": 100.22215569,
+        "slope": -0.14520958,
+        "df": 5,
+        "t_value": 2.01504837,
+        "bound_at_0": 99.94705655,
+        "crossing_months": 32.50987285
+      },
+      {
+        "label": "B003",
+        "intercept": 100.15928144,
+        "slope": -0.20159681,
+        "df": 5,
+        "t_value": 2.01504837,
+        "bound_at_0": 100.00424187,
+        "crossing_months": 24.62037974
+      }
+    ],
+    "governing_batch": "B003",
+    "crossing_months": 24.62037974,
+    "x_months": 24.0,
+    "cap_months": 36.0,
+    "proposed_shelf_life_months": 24
+  },
+  "tolerance": 5e-09,
+  "crosscheck": {
+    "source": "User's statsmodels results, 2026-10-27",
+    "values": {
+      "model": "separate",
+      "governing_batch": "B003",
+      "proposed_shelf_life_months": 24
+    },
+    "tolerance": {},
+    "note": "The user's earlier statsmodels crossing of 24.33 months used the pooled residual error of the full ANCOVA model (df 15; R gives 24.33389941 that way). This project uses each batch's own error (df 5), giving 24.62037974. Same shelf-life (24)."
+  }
+}

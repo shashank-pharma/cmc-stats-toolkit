@@ -10,13 +10,16 @@ import json
 from datetime import UTC, datetime
 from typing import Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator, model_validator
 
 from cmc_stats import __version__, criteria
 
 DISCLAIMER = "Educational and decision-support use only. Not validated for GxP use."
 
 DissolutionDecisionBasis = Literal["rapid_dissolution", "mean_f2", "bootstrap_f2"]
+StabilityDirection = Literal["decrease", "increase", "either"]
+StabilityModel = Literal["pooled", "common_slope", "separate"]
+ShelfLifeLimitedBy = Literal["crossing", "extrapolation_cap", "bound_below_limit_at_start"]
 
 
 class _Frozen(BaseModel):
@@ -220,3 +223,182 @@ class DissolutionResult(_Frozen):
     f2_similar: bool | None
     conclusion: str
     notes: tuple[str, ...]
+
+
+# --- Stability inputs (ICH Q1E, 2003) ------------------------------------------------------
+
+
+class StabilityBatch(_Frozen):
+    """Long-term results for one batch (ICH Q1E; URS-STAB-010 to 015).
+
+    ``times_months`` and ``values`` are paired by position and kept as entered: not sorted,
+    averaged or deduplicated. Replicate results at one time point are allowed.
+    """
+
+    label: str = Field(min_length=1)
+    times_months: tuple[float, ...]
+    values: tuple[float, ...]
+
+    @model_validator(mode="after")
+    def _shape(self) -> Self:
+        """URS-STAB-010 to 013, 018: paired lengths, no negative times or values, enough data.
+
+        Values above 100% are valid results and are kept as entered.
+        """
+        n_times, n_values = len(self.times_months), len(self.values)
+        if n_times != n_values:
+            raise ValueError(
+                f"{self.label}: {n_times} time points but {n_values} values; they must pair up"
+            )
+        negative = [t for t in self.times_months if t < 0]
+        if negative:
+            raise ValueError(f"{self.label}: negative time point(s) {negative}")
+        negative_values = [v for v in self.values if v < 0]
+        if negative_values:
+            raise ValueError(f"{self.label}: negative value(s) {negative_values}")
+        if n_times < criteria.STABILITY_MIN_POINTS_PER_BATCH:
+            raise ValueError(
+                f"{self.label}: {n_times} observations; at least "
+                f"{criteria.STABILITY_MIN_POINTS_PER_BATCH} required (project policy)"
+            )
+        distinct = len(set(self.times_months))
+        if distinct < criteria.STABILITY_MIN_DISTINCT_TIMES:
+            raise ValueError(
+                f"{self.label}: {distinct} distinct time point(s); at least "
+                f"{criteria.STABILITY_MIN_DISTINCT_TIMES} required to estimate a slope"
+            )
+        return self
+
+
+class StabilityInput(_Frozen):
+    """Shelf-life input: batches, acceptance limit and Appendix A conditions (ICH Q1E).
+
+    v1 supports only an attribute expected to decrease (for example assay) with a lower
+    limit, and only the ICH Q1E Appendix A branch "no significant change at accelerated,
+    statistical analysis performed". Both Appendix A conditions must be stated; there are no
+    defaults.
+    """
+
+    attribute: str = Field(min_length=1)
+    unit: str = Field(min_length=1)
+    direction: StabilityDirection
+    lower_limit: float = Field(ge=0)
+    batches: tuple[StabilityBatch, ...]
+    significant_change_at_accelerated: StrictBool
+    statistical_analysis_performed: StrictBool
+
+    @field_validator("direction")
+    @classmethod
+    def _decrease_only(cls, direction: StabilityDirection) -> StabilityDirection:
+        """URS-STAB-006: v1 handles a decreasing attribute with a lower limit only."""
+        if direction != "decrease":
+            raise ValueError(
+                f"direction '{direction}' is not supported in v1: only an attribute expected "
+                "to decrease, with a one-sided lower bound against a lower limit"
+            )
+        return direction
+
+    @model_validator(mode="after")
+    def _batches_and_branch(self) -> Self:
+        """URS-STAB-009 (>= 2 batches), URS-STAB-015 (unique labels), URS-STAB-007 (branch)."""
+        n = len(self.batches)
+        if n < criteria.STABILITY_MIN_BATCHES:
+            raise ValueError(
+                f"at least {criteria.STABILITY_MIN_BATCHES} batches required for the "
+                f"poolability tests; got {n} (project policy)"
+            )
+        labels = [b.label for b in self.batches]
+        duplicates = sorted({x for x in labels if labels.count(x) > 1})
+        if duplicates:
+            raise ValueError(f"duplicate batch label(s): {duplicates}")
+        if self.significant_change_at_accelerated or not self.statistical_analysis_performed:
+            raise ValueError(
+                "ICH Q1E Appendix A: only the branch with no significant change at accelerated "
+                "and statistical analysis performed is implemented; got "
+                f"significant_change_at_accelerated={self.significant_change_at_accelerated}, "
+                f"statistical_analysis_performed={self.statistical_analysis_performed}"
+            )
+        return self
+
+
+# --- Stability results ---------------------------------------------------------------------
+
+
+class BatchFit(_Frozen):
+    """Least-squares line for one batch on its own data (URS-STAB-001)."""
+
+    label: str
+    intercept: float
+    slope: float
+    intercept_se: float
+    slope_se: float
+    residual_df: int
+    mse: float
+
+
+class PoolabilityTest(_Frozen):
+    """One ANCOVA F test (URS-STAB-002)."""
+
+    f_value: float
+    df_num: int
+    df_den: int
+    p_value: float
+
+
+class PoolabilityResult(_Frozen):
+    """Slope then intercept equality tests and the model chosen (URS-STAB-002, 005).
+
+    ``intercepts`` is ``None`` when slopes differ, because the intercept test is not run.
+    """
+
+    alpha: float
+    slopes: PoolabilityTest
+    intercepts: PoolabilityTest | None
+    model: StabilityModel
+
+
+class BatchShelfLife(_Frozen):
+    """Bound and crossing for one line of the chosen model (URS-STAB-003, 005).
+
+    ``label`` is ``None`` for the single pooled line. ``crossing_months`` is ``None`` when the
+    bound never meets the limit.
+    """
+
+    label: str | None
+    intercept: float
+    slope: float
+    df: int
+    t_value: float
+    bound_at_0: float
+    crossing_months: float | None
+
+
+class ExtrapolationCap(_Frozen):
+    """ICH Q1E Appendix A cap, statistical analysis performed (URS-STAB-004, 008)."""
+
+    x_months: float
+    factor: float
+    max_extra_months: int
+    cap_months: float
+
+
+class StabilityResult(_Frozen):
+    """Full shelf-life result (URS-STAB-001 to 017, URS-GEN-001, URS-GEN-002).
+
+    Crossing times are at full precision; only ``proposed_shelf_life_months`` is rounded
+    (down to whole months, as the rule requires).
+    """
+
+    inputs: StabilityInput
+    metadata: ResultMetadata
+    batch_fits: tuple[BatchFit, ...]
+    poolability: PoolabilityResult
+    per_batch: tuple[BatchShelfLife, ...]
+    governing_batch: str | None
+    crossing_months: float | None
+    extrapolation: ExtrapolationCap
+    proposed_shelf_life_months: int
+    limited_by: ShelfLifeLimitedBy
+    conclusion: str
+    notes: tuple[str, ...]
+    warnings: tuple[str, ...]

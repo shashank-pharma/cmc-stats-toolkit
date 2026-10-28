@@ -13,6 +13,15 @@ SHELF_LIFE_CONFIDENCE: Final[float] = 0.95
 # ICH Q1E (2003), Appendix A: extrapolation limits when statistical analysis is performed
 EXTRAPOLATION_FACTOR_STATS: Final[float] = 2.0
 EXTRAPOLATION_MAX_EXTRA_MONTHS_STATS: Final[int] = 12
+# ICH Q1A(R2), Selection of Batches (drug substance and drug product): at least three primary
+# batches. Warning only (URS-STAB-017). Section numbers pending confirmation against the PDF.
+STABILITY_PRIMARY_BATCHES: Final[int] = 3
+# Project policy, not a regulatory value: minimum for the poolability tests (URS-STAB-009)
+STABILITY_MIN_BATCHES: Final[int] = 2
+# Project policy, not a regulatory value: at least 1 residual df per batch fit (URS-STAB-010)
+STABILITY_MIN_POINTS_PER_BATCH: Final[int] = 3
+# Project policy, not a regulatory value: a slope needs 2 distinct times (URS-STAB-011)
+STABILITY_MIN_DISTINCT_TIMES: Final[int] = 2
 
 # FDA guidance, Dissolution Testing of IR Solid Oral Dosage Forms (1997)
 F2_SIMILAR_MIN: Final[float] = 50.0

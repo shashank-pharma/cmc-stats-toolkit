@@ -1,0 +1,153 @@
+{
+  "id": "GOLD-STAB-001",
+  "requirement": "URS-STAB-001, URS-STAB-002, URS-STAB-003, URS-STAB-004, URS-STAB-005, URS-STAB-008",
+  "source": "Independent R output (R version 4.6.1 (2026-06-24), base lm/anova/predict/uniroot; tests/golden/r/stability_gold.R) on dummy data supplied by the user 2026-10-27; statsmodels cross-check; published example pending (GOLD-STAB-004).",
+  "inputs": {
+    "attribute": "Assay",
+    "unit": "% label claim",
+    "direction": "decrease",
+    "significant_change_at_accelerated": false,
+    "statistical_analysis_performed": true,
+    "lower_limit": 95.0,
+    "batches": [
+      {
+        "label": "B001",
+        "times_months": [
+          0.0,
+          3.0,
+          6.0,
+          9.0,
+          12.0,
+          18.0,
+          24.0
+        ],
+        "values": [
+          99.9,
+          99.7,
+          99.5,
+          98.6,
+          98.6,
+          97.6,
+          96.6
+        ]
+      },
+      {
+        "label": "B002",
+        "times_months": [
+          0.0,
+          3.0,
+          6.0,
+          9.0,
+          12.0,
+          18.0,
+          24.0
+        ],
+        "values": [
+          100.5,
+          99.8,
+          99.0,
+          98.9,
+          98.5,
+          97.5,
+          96.9
+        ]
+      },
+      {
+        "label": "B003",
+        "times_months": [
+          0.0,
+          3.0,
+          6.0,
+          9.0,
+          12.0,
+          18.0,
+          24.0
+        ],
+        "values": [
+          100.1,
+          99.8,
+          99.5,
+          98.7,
+          98.5,
+          97.5,
+          96.8
+        ]
+      }
+    ]
+  },
+  "expected": {
+    "model": "pooled",
+    "slopes": {
+      "F": 0.06349206,
+      "df_num": 2,
+      "df_den": 15,
+      "p": 0.9387324
+    },
+    "intercepts": {
+      "F": 0.41810718,
+      "df_num": 2,
+      "df_den": 17,
+      "p": 0.66487963
+    },
+    "batch_fits": [
+      {
+        "label": "B001",
+        "intercept": 100.08922156,
+        "slope": -0.14061876,
+        "intercept_se": 0.12656493,
+        "slope_se": 0.0097897,
+        "residual_df": 5,
+        "mse": 0.04115569
+      },
+      {
+        "label": "B002",
+        "intercept": 100.22215569,
+        "slope": -0.14520958,
+        "intercept_se": 0.13652235,
+        "slope_se": 0.0105599,
+        "residual_df": 5,
+        "mse": 0.04788623
+      },
+      {
+        "label": "B003",
+        "intercept": 100.17305389,
+        "slope": -0.14321357,
+        "intercept_se": 0.08479452,
+        "slope_se": 0.00655879,
+        "residual_df": 5,
+        "mse": 0.01847305
+      }
+    ],
+    "per_batch": [
+      {
+        "label": null,
+        "intercept": 100.16147705,
+        "slope": -0.14301397,
+        "df": 19,
+        "t_value": 1.72913281,
+        "bound_at_0": 100.05371489,
+        "crossing_months": 34.60179115
+      }
+    ],
+    "governing_batch": null,
+    "crossing_months": 34.60179115,
+    "x_months": 24.0,
+    "cap_months": 36.0,
+    "proposed_shelf_life_months": 34
+  },
+  "tolerance": 5e-09,
+  "crosscheck": {
+    "source": "User's statsmodels results, 2026-10-27",
+    "values": {
+      "slope_p": 0.939,
+      "intercept_p": 0.665,
+      "crossing_months": 34.6,
+      "proposed_shelf_life_months": 34
+    },
+    "tolerance": {
+      "slope_p": 0.0005,
+      "intercept_p": 0.0005,
+      "crossing_months": 0.005
+    }
+  }
+}
