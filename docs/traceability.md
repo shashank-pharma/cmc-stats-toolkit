@@ -3,24 +3,32 @@
 Updated by the `/validation-docs` skill. Every requirement needs at least one test.
 
 Test IDs: `GOLD-*` are golden cases in `tests/golden/data/`; `test_<module>::<name>` are tests in
-`tests/`. Last /verify for every row below: **PASS 2026-10-28, v0.3.0** (ruff format, ruff
-check, mypy strict, pytest 148 passed, coverage 98.84%).
+`tests/`. Last /verify for every row below: **PASS 2026-10-28, v0.4.0** (ruff format, ruff
+check, mypy strict, pytest 216 passed, coverage 99.04%).
 
 Stability golden cases GOLD-STAB-001..003 are independent R output (base `lm`/`anova`,
 `tests/golden/r/stability_gold.R`) on dummy data, cross-checked against the user's statsmodels
 results; a published example is pending (GOLD-STAB-004). Each is run by
 test_golden_stability::test_stability_golden and test_stability_golden_crosscheck.
 
+Bioequivalence golden cases GOLD-BE-001..003 are independent R output (base `lm`/`anova`/
+`confint`/`pt`, `tests/golden/r/be_gold.R`) on dummy data generated with `set.seed()` (seed and
+selection rule recorded in each file); a published example is pending. Each is run by
+test_golden_be::test_be_golden.
+
 Open confirmations (provisional until the user checks the guideline text):
 - Separate-slopes model uses each batch's own regression error (ICH Q1E Appendix B.1 per
   batch): URS-STAB-003, URS-STAB-005, GOLD-STAB-003.
 - ICH Q1A(R2) Selection of Batches section numbers (believed 2.1.3 and 2.2.3): URS-STAB-017.
+- BE rounding rule (round half up, BE_ROUNDING_MODE) for the target agency: URS-BE-016.
+- Whether AUC0-inf is decision-making (BE_AUC0INF_DECISION_MAKING; FDA vs EMA): URS-BE-014.
+- ICH M13A and FDA BE statistics guidance section numbers for the BE docstrings.
 
 | Requirement | Implemented in | Tests | Last /verify |
 |---|---|---|---|
-| URS-GEN-001 | models.DISCLAIMER, models.ResultMetadata | test_dissolution::test_result_carries_disclaimer_and_traceability_stamp; test_stability::test_result_carries_disclaimer_and_traceability_stamp | PASS 2026-10-28 |
-| URS-GEN-002 | criteria.GUIDELINE_VERSIONS, models.make_metadata, models.ResultMetadata | test_criteria::test_every_area_has_a_guideline_version; test_dissolution::test_result_carries_disclaimer_and_traceability_stamp, test_input_hash_tracks_inputs, test_result_keeps_inputs_and_full_precision_means; test_stability::test_result_carries_disclaimer_and_traceability_stamp, test_input_hash_tracks_inputs | PASS 2026-10-28 |
-| URS-STAB-001 | core.stability.fit_batches; models.StabilityBatch, BatchFit | GOLD-STAB-001, GOLD-STAB-002, GOLD-STAB-003; test_stability::test_exact_lines_give_exact_coefficients_and_zero_residual, test_batch_fit_matches_statsmodels_ols, test_replicate_time_points_are_accepted, test_data_kept_as_entered_not_sorted | PASS 2026-10-28 |
+| URS-GEN-001 | models.DISCLAIMER, models.ResultMetadata | test_dissolution::test_result_carries_disclaimer_and_traceability_stamp; test_stability::test_result_carries_disclaimer_and_traceability_stamp; test_be::test_result_carries_disclaimer_and_traceability_stamp | PASS 2026-10-28 |
+| URS-GEN-002 | criteria.GUIDELINE_VERSIONS, models.make_metadata, models.ResultMetadata | test_criteria::test_every_area_has_a_guideline_version; test_dissolution::test_result_carries_disclaimer_and_traceability_stamp, test_input_hash_tracks_inputs, test_result_keeps_inputs_and_full_precision_means; test_stability::test_result_carries_disclaimer_and_traceability_stamp, test_input_hash_tracks_inputs; test_be::test_result_carries_disclaimer_and_traceability_stamp, test_input_hash_tracks_inputs | PASS 2026-10-28 |
+| URS-STAB-001 | core.stability.fit_batches; core._linear.ols (shared QR least squares); models.StabilityBatch, BatchFit | GOLD-STAB-001, GOLD-STAB-002, GOLD-STAB-003; test_stability::test_exact_lines_give_exact_coefficients_and_zero_residual, test_batch_fit_matches_statsmodels_ols, test_replicate_time_points_are_accepted, test_data_kept_as_entered_not_sorted | PASS 2026-10-28 |
 | URS-STAB-002 | criteria.POOLABILITY_ALPHA; core.stability.poolability, select_model; models.PoolabilityTest, PoolabilityResult | GOLD-STAB-001, GOLD-STAB-002, GOLD-STAB-003 (with statsmodels cross-check); test_criteria::test_poolability_alpha_is_0_25; test_stability::test_slope_test_matches_statsmodels_with_full_model_error, test_intercept_test_uses_common_slope_error, test_intercepts_not_tested_when_slopes_differ, test_model_chosen_for_each_branch, test_select_model_treats_p_equal_to_0_25_as_poolable, test_select_model_requires_intercept_p_when_slopes_pool, test_raising_every_value_never_shortens_shelf_life | PASS 2026-10-28 |
 | URS-STAB-003 | criteria.SHELF_LIFE_CONFIDENCE; core.stability.lower_bound, crossing_time, estimate_shelf_life; models.BatchShelfLife | GOLD-STAB-001, GOLD-STAB-002, GOLD-STAB-003 (separate model provisional); test_criteria::test_shelf_life_bound_is_one_sided_95; test_stability::test_pooled_bound_matches_statsmodels_90_two_sided_lower_limit, test_common_slope_bound_uses_common_model_for_each_batch, test_separate_bound_uses_each_batch_own_fit, test_bound_rejects_label_not_in_model, test_crossing_agrees_with_numeric_root_of_bound, test_crossing_when_quadratic_term_vanishes, test_crossing_refuses_negative_discriminant, test_batch_reaching_limit_first_governs, test_tied_governing_batches_are_all_named, test_no_tie_note_when_one_batch_governs, test_pooled_result_has_one_line_and_no_governing_batch, test_raising_every_value_never_shortens_shelf_life | PASS 2026-10-28 |
 | URS-STAB-004 | criteria.EXTRAPOLATION_FACTOR_STATS, EXTRAPOLATION_MAX_EXTRA_MONTHS_STATS; core.stability.extrapolation_cap, propose_shelf_life; models.ExtrapolationCap | GOLD-STAB-001, GOLD-STAB-002, GOLD-STAB-003; test_criteria::test_extrapolation_cap_is_2x_but_at_most_12_months_beyond; test_stability::test_cap_is_min_of_2x_and_x_plus_12, test_cap_limits_shelf_life_when_crossing_is_later, test_shelf_life_never_exceeds_cap | PASS 2026-10-28 |
@@ -47,9 +55,24 @@ Open confirmations (provisional until the user checks the guideline text):
 | URS-DISS-007 | criteria.BOOTSTRAP_CI_LEVEL, BOOTSTRAP_MIN_RESAMPLES; models.BootstrapSettings, BootstrapF2Result; core.dissolution.bootstrap_f2, compare_profiles | test_criteria::test_bootstrap_interval_is_90_percent; test_dissolution::test_bootstrap_settings_require_seed_and_count, test_compare_profiles_requires_bootstrap_settings_when_cv_fails, test_bootstrap_is_reproducible_and_records_seed, test_bootstrap_different_seed_gives_different_draws, test_bootstrap_of_identical_units_is_100 (golden case vs R bootf2 pending) | PASS 2026-10-28 |
 | URS-DISS-008 | criteria.F1_SIMILAR_MAX; core.dissolution.f1_within_limit | test_criteria::test_f1_companion_limit; test_dissolution::test_f1_limit_is_inclusive_at_15, test_compare_profiles_mean_f2_path | PASS 2026-10-28 |
 | URS-DISS-009 | models.DissolutionProfile._times_positive_increasing, _values_non_negative, _shape; model config allow_inf_nan=False | test_dissolution::test_bad_profile_rejected (7 cases), test_values_above_100_are_kept_not_clipped | PASS 2026-10-28 |
-| URS-BE-001 | criteria.BE_LOWER_PCT, BE_UPPER_PCT | test_criteria::test_be_range_is_symmetric_on_log_scale | PASS 2026-10-28 |
-| URS-BE-002 | | | **No test: not built** |
-| URS-BE-003 | | | **No test: not built** |
+| URS-BE-001 | criteria.BE_LOWER_PCT, BE_UPPER_PCT, BE_CI_LEVEL; core.be.gmr_interval, be_decision, assess_bioequivalence | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_criteria::test_be_range_is_symmetric_on_log_scale; test_be::test_decision_uses_limits_rounded_half_up (6 cases), test_gmr_interval_formula, test_scaling_test_values_scales_the_ratio, test_swapping_labels_inverts_the_ratio | PASS 2026-10-28 |
+| URS-BE-002 | core.be.analyse_parameter (_design_blocks, _fit); core._linear.ols | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_be::test_fit_matches_statsmodels (3 parameters), test_anova_table_terms_ss_and_df, test_scaling_test_values_scales_the_ratio, test_swapping_labels_inverts_the_ratio | PASS 2026-10-28 |
+| URS-BE-003 | core.be.tost_p_values, cv_within_pct, analyse_parameter | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_criteria::test_tost_alpha_is_derived_as_0_05_from_the_90_percent_ci; test_be::test_tost_p_values_formula, test_tost_agrees_with_ci_away_from_rounding_boundary, test_tost_refuses_non_positive_se (2 cases), test_cv_within_formula, test_note_when_rounded_ci_and_tost_disagree | PASS 2026-10-28 |
+| URS-BE-004 | models.BeInput._crossover_only, _complete_crossover | test_be::test_declared_replicate_design_refused, test_replicate_sequence_refused (3 cases), test_third_period_refused_as_replicate, test_design_and_limits_have_no_default | PASS 2026-10-28 |
+| URS-BE-005 | models.BeInput._average_only | test_be::test_reference_scaled_limits_refused, test_design_and_limits_have_no_default | PASS 2026-10-28 |
+| URS-BE-006 | models.BeInput._crossover_only | test_be::test_parallel_design_refused | PASS 2026-10-28 |
+| URS-BE-007 | models.BeRecord._positive | test_be::test_non_positive_value_rejected (3 cases) | PASS 2026-10-28 |
+| URS-BE-008 | models.BeInput._complete_crossover | test_be::test_subject_missing_period_rejected | PASS 2026-10-28 |
+| URS-BE-009 | models.BeInput._complete_crossover | test_be::test_duplicate_subject_period_rejected | PASS 2026-10-28 |
+| URS-BE-010 | models.BeInput._complete_crossover | test_be::test_unknown_sequence_rejected, test_treatment_not_matching_sequence_rejected | PASS 2026-10-28 |
+| URS-BE-011 | models.BeInput._complete_crossover | test_be::test_subject_in_both_sequences_rejected | PASS 2026-10-28 |
+| URS-BE-012 | criteria.BE_MIN_SUBJECTS_PER_SEQUENCE; models.BeInput._complete_crossover; core.be.analyse_parameter (n_tr, n_rt) | GOLD-BE-003 (7/5); test_criteria::test_be_minimums_and_auc0inf_placeholder; test_be::test_unbalanced_sequences_accepted_and_counted, test_empty_sequence_rejected | PASS 2026-10-28 |
+| URS-BE-013 | criteria.BE_MIN_RESIDUAL_DF; models.BeInput._complete_crossover | test_criteria::test_be_minimums_and_auc0inf_placeholder; test_be::test_residual_df_below_one_rejected, test_three_subjects_give_one_residual_df | PASS 2026-10-28 |
+| URS-BE-014 | criteria.BE_AUC0INF_DECISION_MAKING; models.BeRecord, BeInput._complete_crossover; core.be.analyse_parameter, assess_bioequivalence | GOLD-BE-003 (no AUC0-inf); test_criteria::test_be_minimums_and_auc0inf_placeholder; test_be::test_auc0inf_absent_gives_two_parameters, test_analysing_absent_auc0inf_is_refused, test_auc0inf_present_is_analysed_and_decides, test_auc0inf_reported_but_not_deciding_when_placeholder_false, test_partial_auc0inf_rejected_listing_records (decision-making placeholder pending confirmation) | PASS 2026-10-28 |
+| URS-BE-015 | models.BeRecord.subject (min_length=1), _no_padding; BeInput._complete_crossover (case clash); model config allow_inf_nan=False | test_be::test_non_finite_value_rejected (3 cases), test_empty_subject_rejected, test_padded_subject_rejected (3 cases), test_subject_ids_differing_only_by_case_rejected | PASS 2026-10-28 |
+| URS-BE-016 | criteria.BE_ROUND_DECIMALS, BE_ROUNDING_MODE; core.be.be_decision | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_criteria::test_ci_limits_rounded_half_up_to_two_decimals; test_be::test_decision_uses_limits_rounded_half_up (6 cases), test_rounding_uses_exact_binary_value, test_result_keeps_unrounded_and_rounded_limits, test_note_when_rounded_ci_and_tost_disagree (rounding mode pending confirmation) | PASS 2026-10-28 |
+| URS-BE-017 | core.be.analyse_parameter, assess_bioequivalence; models.AnovaRow, BeParameterResult, BeResult | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_be::test_anova_table_terms_ss_and_df, test_result_reports_every_reviewer_value, test_result_keeps_unrounded_and_rounded_limits, test_note_when_rounded_ci_and_tost_disagree, test_no_rounding_note_away_from_boundary, test_auc0inf_present_is_analysed_and_decides, test_records_kept_as_entered | PASS 2026-10-28 |
+| URS-BE-018 | models.BeRecord._positive | test_be::test_auc0inf_below_auc0t_rejected, test_auc0inf_equal_to_auc0t_accepted | PASS 2026-10-28 |
 
 Tests without a requirement in their docstring: test_golden_dissolution::test_dissolution_golden
 (no docstring; it runs GOLD-DISS-001, whose JSON names URS-DISS-002).

@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.4.0 - 2026-10-28
+No calculated result changes for existing inputs: this release adds new calculations only.
+
+### Added
+- Bioequivalence module `cmc_stats.core.be` for the 2x2 crossover (ICH M13A, 2024; FDA BE
+  statistics guidance): `analyse_parameter`, `gmr_interval`, `tost_p_values`, `cv_within_pct`,
+  `be_decision` and the `assess_bioequivalence` orchestrator.
+  - Log-scale ANOVA with sequence, subject(sequence), period and treatment; type I table
+    (df, SS, MS) reported per parameter.
+  - T/R geometric mean ratio with 90% CI, both TOST p-values (alpha 0.05 derived from the
+    90% CI) and within-subject CV; unequal sequence sizes accepted and counted.
+  - Acceptance 80.00-125.00% after rounding the exact CI limits half up to 2 decimals
+    (placeholder, pending confirmation against the target agency text); unrounded and rounded
+    limits both reported; a note and a caveat in the conclusion when the rounded-CI decision
+    and TOST disagree.
+  - Cmax and AUC0-t always analysed; AUC0-inf optional (all records or none), decision-making
+    by `BE_AUC0INF_DECISION_MAKING` (placeholder; FDA and EMA differ).
+  - Replicate, parallel and reference-scaled analyses refused as not supported in v1.
+- `cmc_stats.models`: `BeRecord`, `BeInput` and result models (`AnovaRow`,
+  `BeParameterResult`, `BeResult`), with the traceability stamp. Input checks reject
+  non-positive values, AUC0-inf below AUC0-t, missing periods, duplicate or inconsistent
+  records, subjects under both sequences, empty sequences, residual df below 1, partial
+  AUC0-inf, non-finite values and empty, padded or case-clashing subject IDs.
+- Requirements URS-BE-004 to URS-BE-018 in `docs/URS.md`.
+- Constants in `criteria.py`: `BE_ROUNDING_MODE` and `BE_AUC0INF_DECISION_MAKING`
+  (placeholders pending agency text), `BE_MIN_SUBJECTS_PER_SEQUENCE` and `BE_MIN_RESIDUAL_DF`
+  (project policy, not regulatory).
+- Golden cases GOLD-BE-001 to 003 from independent R output on seeded dummy data
+  (`tests/golden/r/be_gold.R`); published example pending.
+- Unit, property-based (hypothesis) and requirement-linked BE tests.
+
+### Changed
+- QR least-squares helper moved from `core/stability.py` to the shared `core/_linear.py`;
+  stability results are unchanged (GOLD-STAB-001..003 pass as before). Its rank-deficiency
+  error message is now worded generically.
+- `gxp-review` skill, checklist point 4: "odd subject counts per sequence" replaced by
+  "subjects missing a period", because unbalanced sequences are valid.
+- No existing constant or result changed.
+
+### Fixed
+- Nothing.
+
 ## 0.3.0 - 2026-10-28
 No calculated result changes for existing inputs: this release adds new calculations only.
 
