@@ -40,6 +40,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "PT", "NPY"]
+# Report unused imports but never auto-delete them: the edit hook runs between edits, so an
+# import added just before the code that uses it would otherwise be removed.
+unfixable = ["F401"]
 
 [tool.mypy]
 python_version = "3.12"
