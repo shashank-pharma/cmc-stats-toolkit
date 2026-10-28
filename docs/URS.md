@@ -6,6 +6,8 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 |---|---|---|
 | URS-GEN-001 | Every result states that the tool is for education and decision support, not GxP use. | Project policy |
 | URS-GEN-002 | Every result records the app version, guideline version, input hash and timestamp. | ALCOA+ data integrity |
+| URS-GEN-003 | When data come from an uploaded file, the result metadata records the file name, size in bytes and SHA-256 of the raw bytes; the field is empty when there is no file. | ALCOA+ data integrity; user decision 2026-10-28 |
+| URS-GEN-004 | A sample-data pack in sample_data/ uses the exact UI template CSV format, is regenerated reproducibly from committed seeded scripts, and lists each file's settings and expected result; a test runs every file through the UI parsing and core path and checks those expectations. | Project policy (dummy data only); user requirement 2026-10-28 |
 | URS-STAB-001 | Fit a least-squares line of attribute against time for each batch. | ICH Q1E |
 | URS-STAB-002 | Test equality of slopes, then intercepts, at significance 0.25 and choose the model. | ICH Q1E |
 | URS-STAB-003 | Report the time where the one-sided 95% bound of the mean meets the limit. | ICH Q1E |
@@ -20,7 +22,7 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-STAB-012 | Reject a batch whose time and value lists differ in length, naming the batch. | Project policy |
 | URS-STAB-013 | Reject negative time points, naming the batch. | Project policy |
 | URS-STAB-014 | Reject non-finite values (NaN, infinity) in times, values or the limit. | Project policy |
-| URS-STAB-015 | Reject empty or duplicate batch labels. | Project policy |
+| URS-STAB-015 | Reject empty or duplicate batch labels, labels with leading or trailing whitespace and labels that differ only by letter case, naming them. | Project policy |
 | URS-STAB-016 | If the bound is at or below the limit at time 0, report a shelf-life of 0 and that no shelf-life is supported; if the bound never meets the limit, the extrapolation cap sets the shelf-life and a note says so. | Project policy |
 | URS-STAB-017 | With fewer than 3 batches, add a warning (not an error) to the result; the calculation still runs. | ICH Q1A(R2), Selection of Batches (drug substance and drug product); section numbers pending confirmation |
 | URS-STAB-018 | Reject negative values (naming the batch) and a negative lower limit; values above 100% are kept as entered. | Project policy (reject bad input loudly) |
@@ -51,3 +53,23 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-BE-016 | Round the CI limits half up to BE_ROUND_DECIMALS before comparing them with the acceptance range; report both unrounded and rounded limits. | ich-stats-rules; rounding mode pending confirmation against the target agency text |
 | URS-BE-017 | For each parameter report the type I ANOVA table (df, SS, MS), n per sequence, residual df, MSE, log difference and SE, t value, point estimate and CI (full precision and rounded) and pass/fail; bioequivalent overall only if every decision-making parameter passes. When the rounded-CI decision and TOST disagree, say so in the result notes and the conclusion. | ICH M13A; FDA BE statistics guidance |
 | URS-BE-018 | Reject AUC0-inf smaller than AUC0-t, naming the subject and period; equal values are accepted. | Project policy (AUC0-inf = AUC0-t + extrapolated area) |
+| URS-API-001 | GET /health returns status "ok", the app version and the disclaimer. | Project policy |
+| URS-API-002 | POST /dissolution takes DissolutionInput and optional BootstrapSettings and returns DissolutionResult exactly as compare_profiles produces it. | Project policy |
+| URS-API-003 | POST /stability takes StabilityInput and returns StabilityResult exactly as estimate_shelf_life produces it. | Project policy |
+| URS-API-004 | POST /be takes BeInput and returns BeResult exactly as assess_bioequivalence produces it. | Project policy |
+| URS-API-005 | Input that fails model validation, including NaN or infinity, returns 422 with the validation messages. | Project policy (reject bad input loudly) |
+| URS-API-006 | A ValueError raised by a core function returns 422 with its message, never 500; a result that fails its own model inside an endpoint (a defect in the tool) returns 500, never a 422 that blames the input. | Project policy |
+| URS-UI-001 | Each tab offers a downloadable CSV template with dummy data that parses into a valid input. | Project policy |
+| URS-UI-002 | Reject a CSV with missing required columns or unknown columns, naming them. | Project policy |
+| URS-UI-003 | Reject blank cells, naming the row and column. | Project policy |
+| URS-UI-004 | Reject non-numeric or non-integer text in numeric columns (including NaN, inf and decimal commas), naming the row and column. | Project policy |
+| URS-UI-005 | Reject an empty file, a header-only file and a file that is not UTF-8. | Project policy |
+| URS-UI-006 | Dissolution: every unit of a product must have every time point exactly once; reject missing or duplicate cells, naming the unit and time. | Project policy; FDA IR dissolution guidance (1997) (identical time points) |
+| URS-UI-007 | Keep rows in file order and group batches, units and subjects in order of first appearance; never sort, drop or average. | ALCOA+ (original data) |
+| URS-UI-008 | Settings not in the CSV must be chosen explicitly before Run is enabled (stability attribute, unit, direction, limit and Appendix A conditions; BE design and limits); dissolution bootstrap seed and resample count are given together or not at all. No defaults. | Project policy (no invented seed or settings) |
+| URS-UI-009 | Show parsing, validation and core errors verbatim, with no result displayed. | Project policy |
+| URS-UI-010 | Show the disclaimer on every tab. | URS-GEN-001 |
+| URS-UI-011 | Show every note, warning or method note containing "pending confirmation" or "provisional" in a warning box above the results. | Project policy |
+| URS-UI-012 | Results tables keep full precision; values are rounded only by display formatting. | CLAUDE.md (round only for display) |
+| URS-UI-013 | Charts are Plotly line or bar only: dissolution mean profiles; stability batch data, fitted mean line, 95% lower bound and limit; BE point estimate bars with 90% CI error bars and 80/125% reference lines. | Project policy |
+| URS-UI-014 | When the template's dummy data are used instead of an upload, show the warning "Result from template dummy data, not your data" with the result, and record the template file name as the source file. | ALCOA+ (attributable); user requirement 2026-10-28 |

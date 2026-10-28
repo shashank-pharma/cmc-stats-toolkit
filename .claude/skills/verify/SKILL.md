@@ -12,7 +12,9 @@ Run these in order and stop at the first failure:
 2. `uv run ruff format --check .`
 3. `uv run ruff check .`
 4. `uv run mypy`
-5. `uv run pytest --cov=cmc_stats --cov-report=term-missing --cov-fail-under=90`
+5. `uv run pytest --cov=src/cmc_stats --cov-report=term-missing --cov-fail-under=90`
+   (a directory, not the package name, so `ui.py` run by Streamlit's AppTest as `__main__`
+   is counted)
 
 Then report in this shape:
 

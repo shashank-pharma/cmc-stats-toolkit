@@ -21,6 +21,7 @@ from cmc_stats.models import (
     DissolutionDecisionBasis,
     DissolutionInput,
     DissolutionResult,
+    SourceFile,
     TruncationResult,
     make_metadata,
 )
@@ -222,13 +223,15 @@ def compare_profiles(
     bootstrap: BootstrapSettings | None = None,
     *,
     timestamp: datetime | None = None,
+    source_files: Sequence[SourceFile] = (),
 ) -> DissolutionResult:
-    """Compare reference and test dissolution profiles (URS-DISS-001 to 008, URS-GEN-001/002).
+    """Compare reference and test dissolution profiles (URS-DISS-001 to 008, URS-GEN-001 to 003).
 
     FDA IR dissolution guidance (1997), section V; bootstrap per Shah et al., Pharm Res 1998
     (provisional). Steps: mean profiles; rapid-dissolution flag (no f2 verdict); 85% cut-off;
     CV checks on the points used; f1 and f2 from means. If CV limits pass, mean-data f2
     decides. If they fail, bootstrap f2 decides and ``bootstrap`` settings are required.
+    ``source_files`` (raw uploads the data came from) are recorded in the metadata only.
 
     Raises:
         ValueError: CV limits fail and no ``BootstrapSettings`` were given, or CV is undefined.
@@ -245,6 +248,7 @@ def compare_profiles(
         },
         "dissolution",
         timestamp,
+        source_files=source_files,
     )
     mean_reference = tuple(float(x) for x in mean_ref)
     mean_test_tuple = tuple(float(x) for x in mean_test)

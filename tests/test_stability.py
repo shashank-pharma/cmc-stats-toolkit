@@ -630,6 +630,21 @@ def test_duplicate_labels_rejected() -> None:
         StabilityInput.model_validate(fields)
 
 
+@pytest.mark.parametrize("label", ["B001 ", " B001", "B001\t"])
+def test_padded_label_rejected(label: str) -> None:
+    """URS-STAB-015: leading or trailing whitespace would silently make a second batch."""
+    with pytest.raises(ValidationError, match="leading or trailing whitespace"):
+        StabilityBatch(label=label, times_months=(0.0, 3.0, 6.0), values=(100.0, 99.5, 99.0))
+
+
+def test_labels_differing_only_by_case_rejected() -> None:
+    """URS-STAB-015: 'B001' and 'b001' are reported as a clash, not treated as two batches."""
+    fields = make_input().model_dump()
+    fields["batches"][2]["label"] = "b001"
+    with pytest.raises(ValidationError, match=r"differ only by letter case: 'B001', 'b001'"):
+        StabilityInput.model_validate(fields)
+
+
 # --- URS-GEN-001, URS-GEN-002: disclaimer and traceability --------------------------------
 
 

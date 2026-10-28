@@ -1,0 +1,167 @@
+{
+  "description": "Settings and expected results for each sample file; built by build_expected.py and checked by tests/test_sample_data.py (URS-GEN-004).",
+  "files": {
+    "be_12_subjects_cv45.csv": {
+      "area": "be",
+      "settings": {
+        "design": "2x2_crossover",
+        "limits": "average"
+      },
+      "expected": {
+        "source": "independent R output (R version 4.6.1 (2026-06-24)), generate_be.R seed 1, true ratio 0.97, CV 0.45",
+        "bioequivalent": false,
+        "parameters": {
+          "cmax": {
+            "n_tr": 6,
+            "n_rt": 6,
+            "ci_lower_rounded": 61.22,
+            "ci_upper_rounded": 99.08,
+            "within_limits": false
+          },
+          "auc0t": {
+            "n_tr": 6,
+            "n_rt": 6,
+            "ci_lower_rounded": 59.27,
+            "ci_upper_rounded": 99.79,
+            "within_limits": false
+          },
+          "auc0inf": {
+            "n_tr": 6,
+            "n_rt": 6,
+            "ci_lower_rounded": 60.22,
+            "ci_upper_rounded": 99.81,
+            "within_limits": false
+          }
+        }
+      }
+    },
+    "be_24_subjects_cv20.csv": {
+      "area": "be",
+      "settings": {
+        "design": "2x2_crossover",
+        "limits": "average"
+      },
+      "expected": {
+        "source": "independent R output (R version 4.6.1 (2026-06-24)), generate_be.R seed 1, true ratio 0.97, CV 0.2",
+        "bioequivalent": true,
+        "parameters": {
+          "cmax": {
+            "n_tr": 12,
+            "n_rt": 12,
+            "ci_lower_rounded": 88.05,
+            "ci_upper_rounded": 105.94,
+            "within_limits": true
+          },
+          "auc0t": {
+            "n_tr": 12,
+            "n_rt": 12,
+            "ci_lower_rounded": 94.82,
+            "ci_upper_rounded": 110.92,
+            "within_limits": true
+          },
+          "auc0inf": {
+            "n_tr": 12,
+            "n_rt": 12,
+            "ci_lower_rounded": 94.57,
+            "ci_upper_rounded": 110.52,
+            "within_limits": true
+          }
+        }
+      }
+    },
+    "dissolution_similar.csv": {
+      "area": "dissolution",
+      "settings": {},
+      "expected": {
+        "source": "this project's core (regression values, not an independent reference); data generated with numpy 2.5.4, seed 20261028",
+        "decision_basis": "mean_f2",
+        "f2_similar": true,
+        "n_points_used": 5,
+        "f1": 5.4758,
+        "f2": 69.7639
+      }
+    },
+    "dissolution_similar_high_cv.csv": {
+      "area": "dissolution",
+      "settings": {
+        "bootstrap_seed": 20261028,
+        "bootstrap_n_resamples": 2000
+      },
+      "expected": {
+        "source": "this project's core (regression values, not an independent reference); data generated with numpy 2.5.4, seed 20261028",
+        "decision_basis": "bootstrap_f2",
+        "f2_similar": true,
+        "n_points_used": 5,
+        "f1": 4.9536,
+        "f2": 67.9932,
+        "bootstrap_lower": 50.9938
+      }
+    },
+    "dissolution_slow.csv": {
+      "area": "dissolution",
+      "settings": {},
+      "expected": {
+        "source": "this project's core (regression values, not an independent reference); data generated with numpy 2.5.4, seed 20261028",
+        "decision_basis": "mean_f2",
+        "f2_similar": false,
+        "n_points_used": 6,
+        "f1": 20.2098,
+        "f2": 40.6657
+      }
+    },
+    "stability_b003_faster.csv": {
+      "area": "stability",
+      "settings": {
+        "attribute": "Assay",
+        "unit": "% label claim",
+        "direction": "decrease",
+        "lower_limit": 95.0,
+        "significant_change_at_accelerated": false,
+        "statistical_analysis_performed": true
+      },
+      "expected": {
+        "source": "independent R output, same data as GOLD-STAB-003",
+        "model": "separate",
+        "governing_batch": "B003",
+        "crossing_months": 24.62037974,
+        "proposed_shelf_life_months": 24
+      }
+    },
+    "stability_b003_similar.csv": {
+      "area": "stability",
+      "settings": {
+        "attribute": "Assay",
+        "unit": "% label claim",
+        "direction": "decrease",
+        "lower_limit": 95.0,
+        "significant_change_at_accelerated": false,
+        "statistical_analysis_performed": true
+      },
+      "expected": {
+        "source": "independent R output, same data as GOLD-STAB-001",
+        "model": "pooled",
+        "governing_batch": null,
+        "crossing_months": 34.60179115,
+        "proposed_shelf_life_months": 34
+      }
+    },
+    "stability_b003_start.csv": {
+      "area": "stability",
+      "settings": {
+        "attribute": "Assay",
+        "unit": "% label claim",
+        "direction": "decrease",
+        "lower_limit": 95.0,
+        "significant_change_at_accelerated": false,
+        "statistical_analysis_performed": true
+      },
+      "expected": {
+        "source": "independent R output, same data as GOLD-STAB-002",
+        "model": "common_slope",
+        "governing_batch": "B003",
+        "crossing_months": 29.82320441,
+        "proposed_shelf_life_months": 29
+      }
+    }
+  }
+}

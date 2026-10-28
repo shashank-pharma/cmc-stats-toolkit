@@ -13,6 +13,7 @@ Design matrices (k batches, N results):
 """
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -30,6 +31,7 @@ from cmc_stats.models import (
     PoolabilityResult,
     PoolabilityTest,
     ShelfLifeLimitedBy,
+    SourceFile,
     StabilityInput,
     StabilityModel,
     StabilityResult,
@@ -316,16 +318,25 @@ def propose_shelf_life(
 
 
 def estimate_shelf_life(
-    data: StabilityInput, *, timestamp: datetime | None = None
+    data: StabilityInput,
+    *,
+    timestamp: datetime | None = None,
+    source_files: Sequence[SourceFile] = (),
 ) -> StabilityResult:
-    """Full ICH Q1E shelf-life evaluation (URS-STAB-001 to 017, URS-GEN-001, URS-GEN-002).
+    """Full ICH Q1E shelf-life evaluation (URS-STAB-001 to 018, URS-GEN-001 to 003).
 
     ICH Q1E (2003), Appendices A and B. Steps: per-batch fits; poolability
     at 0.25 (slopes, then intercepts); bound of each line of the chosen model; earliest
     crossing (worst batch governs); Appendix A cap; shelf-life rounded down to whole months.
     Warns when there are fewer than 3 batches (ICH Q1A(R2), Selection of Batches).
+    ``source_files`` (raw uploads the data came from) are recorded in the metadata only.
     """
-    metadata = make_metadata({"inputs": data.model_dump(mode="json")}, "stability", timestamp)
+    metadata = make_metadata(
+        {"inputs": data.model_dump(mode="json")},
+        "stability",
+        timestamp,
+        source_files=source_files,
+    )
     pool = poolability(data)
     model = pool.model
     per_batch = []

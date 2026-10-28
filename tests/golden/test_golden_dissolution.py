@@ -10,6 +10,7 @@ CASES = sorted((Path(__file__).parent / "data").glob("GOLD-DISS-*.json"))
 
 @pytest.mark.parametrize("case_file", CASES, ids=lambda p: p.stem)
 def test_dissolution_golden(case_file: Path) -> None:
+    """URS-DISS-002: f1 and f2 from mean profiles match each GOLD-DISS case."""
     case = json.loads(case_file.read_text(encoding="utf-8"))
     reference, test = case["inputs"]["reference"], case["inputs"]["test"]
     tolerance = case["tolerance"]

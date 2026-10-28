@@ -11,6 +11,7 @@ intercept | sequence (RT) | subject within sequence (n - 2) | period (2) | treat
 """
 
 import math
+from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal
 
@@ -26,6 +27,7 @@ from cmc_stats.models import (
     BeParameter,
     BeParameterResult,
     BeResult,
+    SourceFile,
     make_metadata,
 )
 
@@ -200,15 +202,26 @@ def analyse_parameter(data: BeInput, parameter: BeParameter) -> BeParameterResul
     )
 
 
-def assess_bioequivalence(data: BeInput, *, timestamp: datetime | None = None) -> BeResult:
-    """Average bioequivalence of a 2x2 crossover (URS-BE-001 to 017, URS-GEN-001, 002).
+def assess_bioequivalence(
+    data: BeInput,
+    *,
+    timestamp: datetime | None = None,
+    source_files: Sequence[SourceFile] = (),
+) -> BeResult:
+    """Average bioequivalence of a 2x2 crossover (URS-BE-001 to 018, URS-GEN-001 to 003).
 
     ICH M13A (2024); FDA BE statistics guidance. Analyses Cmax and AUC0-t, and AUC0-inf when
     supplied. Bioequivalent when every decision-making parameter's rounded 90% CI lies within
     80.00-125.00%. Whether AUC0-inf is decision-making is ``BE_AUC0INF_DECISION_MAKING``
     (placeholder; agencies differ, pending confirmation against the target agency text).
+    ``source_files`` (raw uploads the data came from) are recorded in the metadata only.
     """
-    metadata = make_metadata({"inputs": data.model_dump(mode="json")}, "bioequivalence", timestamp)
+    metadata = make_metadata(
+        {"inputs": data.model_dump(mode="json")},
+        "bioequivalence",
+        timestamp,
+        source_files=source_files,
+    )
     names: list[BeParameter] = ["cmax", "auc0t"]
     if data.records[0].auc0inf is not None:
         names.append("auc0inf")

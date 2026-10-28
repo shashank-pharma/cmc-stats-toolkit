@@ -7,6 +7,7 @@ kept at full precision; rounding happens only in the UI and report.
 
 import hashlib
 import json
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Any, Literal, Self
 
@@ -40,26 +41,47 @@ class _Frozen(BaseModel):
 # --- Shared --------------------------------------------------------------------------------
 
 
+class SourceFile(_Frozen):
+    """An uploaded file the inputs were parsed from (URS-GEN-003; ALCOA+).
+
+    ``sha256`` is the digest of the raw bytes as uploaded, before any decoding or parsing.
+    """
+
+    name: str = Field(min_length=1)
+    size_bytes: int = Field(ge=0)
+    sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+
 class ResultMetadata(_Frozen):
-    """Traceability stamp on every result (URS-GEN-001, URS-GEN-002; ALCOA+)."""
+    """Traceability stamp on every result (URS-GEN-001 to 003; ALCOA+).
+
+    ``input_hash`` covers the parsed inputs and settings; ``source_files`` records the raw
+    files they came from (empty when the inputs did not come from a file).
+    """
 
     disclaimer: str = DISCLAIMER
     app_version: str
     guideline_version: str
     input_hash: str = Field(pattern=r"^[0-9a-f]{64}$")
     timestamp: datetime
+    source_files: tuple[SourceFile, ...] = ()
 
 
 def make_metadata(
-    inputs: dict[str, Any], area: str, timestamp: datetime | None = None
+    inputs: dict[str, Any],
+    area: str,
+    timestamp: datetime | None = None,
+    *,
+    source_files: Sequence[SourceFile] = (),
 ) -> ResultMetadata:
-    """Build the traceability stamp for a result (URS-GEN-001, URS-GEN-002; ALCOA+).
+    """Build the traceability stamp for a result (URS-GEN-001 to 003; ALCOA+).
 
     Args:
         inputs: JSON-serialisable inputs and settings; hashed with SHA-256 over canonical JSON
             (sorted keys, no whitespace), so equal inputs always give the same hash.
         area: key into ``criteria.GUIDELINE_VERSIONS``.
         timestamp: time of calculation; defaults to now in UTC. Pass one for reproducible tests.
+        source_files: raw files the inputs were parsed from; not part of ``input_hash``.
     """
     canonical = json.dumps(inputs, sort_keys=True, separators=(",", ":"), allow_nan=False)
     return ResultMetadata(
@@ -67,6 +89,7 @@ def make_metadata(
         guideline_version=criteria.GUIDELINE_VERSIONS[area],
         input_hash=hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
         timestamp=timestamp if timestamp is not None else datetime.now(UTC),
+        source_files=tuple(source_files),
     )
 
 
@@ -250,6 +273,14 @@ class StabilityBatch(_Frozen):
     times_months: tuple[float, ...]
     values: tuple[float, ...]
 
+    @field_validator("label")
+    @classmethod
+    def _no_padding(cls, label: str) -> str:
+        """URS-STAB-015: a label with leading or trailing spaces would make a second batch."""
+        if label != label.strip():
+            raise ValueError(f"batch label {label!r} has leading or trailing whitespace")
+        return label
+
     @model_validator(mode="after")
     def _shape(self) -> Self:
         """URS-STAB-010 to 013, 018: paired lengths, no negative times or values, enough data.
@@ -322,6 +353,15 @@ class StabilityInput(_Frozen):
         duplicates = sorted({x for x in labels if labels.count(x) > 1})
         if duplicates:
             raise ValueError(f"duplicate batch label(s): {duplicates}")
+        by_case: dict[str, set[str]] = {}
+        for label in labels:
+            by_case.setdefault(label.casefold(), set()).add(label)
+        clashes = [sorted(group) for group in by_case.values() if len(group) > 1]
+        if clashes:
+            raise ValueError(
+                "batch labels differ only by letter case: "
+                + "; ".join(", ".join(repr(x) for x in group) for group in clashes)
+            )
         if self.significant_change_at_accelerated or not self.statistical_analysis_performed:
             raise ValueError(
                 "ICH Q1E Appendix A: only the branch with no significant change at accelerated "
