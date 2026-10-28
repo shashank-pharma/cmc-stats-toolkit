@@ -19,7 +19,7 @@ suggested fix. Mark each finding High, Medium or Low.
 3. Accurate: calculations use full precision; rounding happens only at display or report
    time and follows criteria.py.
 4. Validated input: pydantic models reject impossible values (negative assay, fewer than
-   12 dissolution units, unmatched time points, odd subject counts per sequence).
+   12 dissolution units, unmatched time points, subjects missing a period).
 5. Reproducible: every random step takes a seed and the result records it.
 6. Cited: new constants live in criteria.py with guideline and section; new functions cite
    their guideline in the docstring.

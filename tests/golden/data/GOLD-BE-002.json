@@ -1,0 +1,386 @@
+{
+  "id": "GOLD-BE-002",
+  "requirement": "URS-BE-001, URS-BE-002, URS-BE-003, URS-BE-016, URS-BE-017",
+  "source": "Independent R output (R version 4.6.1 (2026-06-24), base lm/anova/confint/pt; tests/golden/r/be_gold.R) on dummy data generated with set.seed(1) (6 TR / 6 RT subjects, true T/R ratio 0.85, within-subject CV 0.3); published example pending. Rounded limits use the round-half-up placeholder, pending confirmation against the target agency text.",
+  "inputs": {
+    "design": "2x2_crossover",
+    "limits": "average",
+    "records": [
+      {
+        "subject": "S01",
+        "sequence": "TR",
+        "period": 1,
+        "treatment": "T",
+        "cmax": 60.56,
+        "auc0t": 648.05,
+        "auc0inf": 696.56
+      },
+      {
+        "subject": "S01",
+        "sequence": "TR",
+        "period": 2,
+        "treatment": "R",
+        "cmax": 77.3,
+        "auc0t": 1388.31,
+        "auc0inf": 1432.27
+      },
+      {
+        "subject": "S02",
+        "sequence": "TR",
+        "period": 1,
+        "treatment": "T",
+        "cmax": 117.41,
+        "auc0t": 1618.86,
+        "auc0inf": 1724.85
+      },
+      {
+        "subject": "S02",
+        "sequence": "TR",
+        "period": 2,
+        "treatment": "R",
+        "cmax": 100.01,
+        "auc0t": 1750.68,
+        "auc0inf": 1846.31
+      },
+      {
+        "subject": "S03",
+        "sequence": "TR",
+        "period": 1,
+        "treatment": "T",
+        "cmax": 70.5,
+        "auc0t": 648.46,
+        "auc0inf": 691.27
+      },
+      {
+        "subject": "S03",
+        "sequence": "TR",
+        "period": 2,
+        "treatment": "R",
+        "cmax": 95.98,
+        "auc0t": 1602.47,
+        "auc0inf": 1659.04
+      },
+      {
+        "subject": "S04",
+        "sequence": "TR",
+        "period": 1,
+        "treatment": "T",
+        "cmax": 82.25,
+        "auc0t": 1698.04,
+        "auc0inf": 1802.53
+      },
+      {
+        "subject": "S04",
+        "sequence": "TR",
+        "period": 2,
+        "treatment": "R",
+        "cmax": 141.85,
+        "auc0t": 2007.3,
+        "auc0inf": 2089.1
+      },
+      {
+        "subject": "S05",
+        "sequence": "TR",
+        "period": 1,
+        "treatment": "T",
+        "cmax": 103.42,
+        "auc0t": 1367.09,
+        "auc0inf": 1401.78
+      },
+      {
+        "subject": "S05",
+        "sequence": "TR",
+        "period": 2,
+        "treatment": "R",
+        "cmax": 155.35,
+        "auc0t": 2097.72,
+        "auc0inf": 2183.38
+      },
+      {
+        "subject": "S06",
+        "sequence": "TR",
+        "period": 1,
+        "treatment": "T",
+        "cmax": 68.04,
+        "auc0t": 1344.7,
+        "auc0inf": 1437.36
+      },
+      {
+        "subject": "S06",
+        "sequence": "TR",
+        "period": 2,
+        "treatment": "R",
+        "cmax": 139.23,
+        "auc0t": 1421.96,
+        "auc0inf": 1479.29
+      },
+      {
+        "subject": "S07",
+        "sequence": "RT",
+        "period": 1,
+        "treatment": "R",
+        "cmax": 138.61,
+        "auc0t": 1931.03,
+        "auc0inf": 1999.27
+      },
+      {
+        "subject": "S07",
+        "sequence": "RT",
+        "period": 2,
+        "treatment": "T",
+        "cmax": 71.64,
+        "auc0t": 1017.71,
+        "auc0inf": 1094.31
+      },
+      {
+        "subject": "S08",
+        "sequence": "RT",
+        "period": 1,
+        "treatment": "R",
+        "cmax": 150.71,
+        "auc0t": 1757.1,
+        "auc0inf": 1881.96
+      },
+      {
+        "subject": "S08",
+        "sequence": "RT",
+        "period": 2,
+        "treatment": "T",
+        "cmax": 112.77,
+        "auc0t": 1431.98,
+        "auc0inf": 1550.57
+      },
+      {
+        "subject": "S09",
+        "sequence": "RT",
+        "period": 1,
+        "treatment": "R",
+        "cmax": 127.65,
+        "auc0t": 1328.67,
+        "auc0inf": 1432.79
+      },
+      {
+        "subject": "S09",
+        "sequence": "RT",
+        "period": 2,
+        "treatment": "T",
+        "cmax": 107.77,
+        "auc0t": 1736.87,
+        "auc0inf": 1818.43
+      },
+      {
+        "subject": "S10",
+        "sequence": "RT",
+        "period": 1,
+        "treatment": "R",
+        "cmax": 68.19,
+        "auc0t": 1588.7,
+        "auc0inf": 1664.78
+      },
+      {
+        "subject": "S10",
+        "sequence": "RT",
+        "period": 2,
+        "treatment": "T",
+        "cmax": 89.27,
+        "auc0t": 1202.02,
+        "auc0inf": 1239.13
+      },
+      {
+        "subject": "S11",
+        "sequence": "RT",
+        "period": 1,
+        "treatment": "R",
+        "cmax": 178.68,
+        "auc0t": 2203.37,
+        "auc0inf": 2278.93
+      },
+      {
+        "subject": "S11",
+        "sequence": "RT",
+        "period": 2,
+        "treatment": "T",
+        "cmax": 135.87,
+        "auc0t": 1358.27,
+        "auc0inf": 1440.19
+      },
+      {
+        "subject": "S12",
+        "sequence": "RT",
+        "period": 1,
+        "treatment": "R",
+        "cmax": 169.5,
+        "auc0t": 1714.15,
+        "auc0inf": 1855.26
+      },
+      {
+        "subject": "S12",
+        "sequence": "RT",
+        "period": 2,
+        "treatment": "T",
+        "cmax": 96.13,
+        "auc0t": 1523.24,
+        "auc0inf": 1578.27
+      }
+    ]
+  },
+  "expected": {
+    "parameters": [
+      {
+        "parameter": "cmax",
+        "n_tr": 6,
+        "n_rt": 6,
+        "df": 10,
+        "mse": 0.04947363,
+        "diff_log": -0.31259146,
+        "se_log": 0.09080532,
+        "t_value": 1.81246112,
+        "pe_pct": 73.15487166,
+        "ci_lower_pct": 62.05354364,
+        "ci_upper_pct": 86.24221814,
+        "ci_lower_rounded": 62.05,
+        "ci_upper_rounded": 86.24,
+        "within_limits": false,
+        "tost_p_lower": 0.8260841,
+        "tost_p_upper": 7.555e-05,
+        "cv_within_pct": 22.52063195,
+        "anova": [
+          {
+            "term": "sequence",
+            "df": 1,
+            "ss": 0.19008103,
+            "ms": 0.19008103
+          },
+          {
+            "term": "subject(sequence)",
+            "df": 10,
+            "ss": 1.06904903,
+            "ms": 0.1069049
+          },
+          {
+            "term": "period",
+            "df": 1,
+            "ss": 0.00567684,
+            "ms": 0.00567684
+          },
+          {
+            "term": "treatment",
+            "df": 1,
+            "ss": 0.58628053,
+            "ms": 0.58628053
+          },
+          {
+            "term": "residual",
+            "df": 10,
+            "ss": 0.49473632,
+            "ms": 0.04947363
+          }
+        ]
+      },
+      {
+        "parameter": "auc0t",
+        "n_tr": 6,
+        "n_rt": 6,
+        "df": 10,
+        "mse": 0.05789566,
+        "diff_log": -0.32118092,
+        "se_log": 0.09823073,
+        "t_value": 1.81246112,
+        "pe_pct": 72.52920187,
+        "ci_lower_pct": 60.70037534,
+        "ci_upper_pct": 86.66313996,
+        "ci_lower_rounded": 60.7,
+        "ci_upper_rounded": 86.66,
+        "within_limits": false,
+        "tost_p_lower": 0.82909953,
+        "tost_p_upper": 0.00012354,
+        "cv_within_pct": 24.41401884,
+        "anova": [
+          {
+            "term": "sequence",
+            "df": 1,
+            "ss": 0.06355573,
+            "ms": 0.06355573
+          },
+          {
+            "term": "subject(sequence)",
+            "df": 10,
+            "ss": 0.87154036,
+            "ms": 0.08715404
+          },
+          {
+            "term": "period",
+            "df": 1,
+            "ss": 0.03667895,
+            "ms": 0.03667895
+          },
+          {
+            "term": "treatment",
+            "df": 1,
+            "ss": 0.6189431,
+            "ms": 0.6189431
+          },
+          {
+            "term": "residual",
+            "df": 10,
+            "ss": 0.57895661,
+            "ms": 0.05789566
+          }
+        ]
+      },
+      {
+        "parameter": "auc0inf",
+        "n_tr": 6,
+        "n_rt": 6,
+        "df": 10,
+        "mse": 0.05298946,
+        "diff_log": -0.31314264,
+        "se_log": 0.09397647,
+        "t_value": 1.81246112,
+        "pe_pct": 73.11456124,
+        "ci_lower_pct": 61.66391051,
+        "ci_upper_pct": 86.69153515,
+        "ci_lower_rounded": 61.66,
+        "ci_upper_rounded": 86.69,
+        "within_limits": false,
+        "tost_p_lower": 0.819597,
+        "tost_p_upper": 9.826e-05,
+        "cv_within_pct": 23.32778077,
+        "anova": [
+          {
+            "term": "sequence",
+            "df": 1,
+            "ss": 0.07111853,
+            "ms": 0.07111853
+          },
+          {
+            "term": "subject(sequence)",
+            "df": 10,
+            "ss": 0.87021703,
+            "ms": 0.0870217
+          },
+          {
+            "term": "period",
+            "df": 1,
+            "ss": 0.02733028,
+            "ms": 0.02733028
+          },
+          {
+            "term": "treatment",
+            "df": 1,
+            "ss": 0.58834989,
+            "ms": 0.58834989
+          },
+          {
+            "term": "residual",
+            "df": 10,
+            "ss": 0.52989464,
+            "ms": 0.05298946
+          }
+        ]
+      }
+    ],
+    "bioequivalent": false
+  },
+  "tolerance": 5e-09
+}

@@ -48,6 +48,17 @@ BE_LOWER_PCT: Final[float] = 80.00
 BE_UPPER_PCT: Final[float] = 125.00
 BE_CI_LEVEL: Final[float] = 0.90
 BE_ROUND_DECIMALS: Final[int] = 2  # confirm for the target agency
+# Placeholder, pending confirmation against the target agency text (URS-BE-016): CI limits
+# are rounded half up (decimal.ROUND_HALF_UP) to BE_ROUND_DECIMALS before comparison
+BE_ROUNDING_MODE: Final[str] = "ROUND_HALF_UP"
+# Agencies differ on whether AUC0-inf is decision-making (FDA vs EMA). Placeholder, pending
+# confirmation against the target agency text (URS-BE-014): when False, AUC0-inf is reported
+# but does not count towards the overall BE verdict
+BE_AUC0INF_DECISION_MAKING: Final[bool] = True
+# Project policy, not a regulatory value: each sequence needs a subject (URS-BE-012)
+BE_MIN_SUBJECTS_PER_SEQUENCE: Final[int] = 1
+# Project policy, not a regulatory value: residual df of the ANOVA must be >= 1 (URS-BE-013)
+BE_MIN_RESIDUAL_DF: Final[int] = 1
 
 GUIDELINE_VERSIONS: Final[dict[str, str]] = {
     "stability": "ICH Q1E (Step 4, 2003)",

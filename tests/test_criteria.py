@@ -1,9 +1,30 @@
+import pytest
+
 from cmc_stats import criteria
 
 
 def test_be_range_is_symmetric_on_log_scale() -> None:
     """URS-BE-001: the acceptance range 80.00-125.00% is symmetric around 100% on a log scale."""
     assert criteria.BE_LOWER_PCT * criteria.BE_UPPER_PCT == 10000.0
+
+
+def test_tost_alpha_is_derived_as_0_05_from_the_90_percent_ci() -> None:
+    """URS-BE-003: each one-sided test runs at (1 - 0.90) / 2 = 0.05."""
+    assert criteria.BE_CI_LEVEL == 0.90
+    assert pytest.approx(0.05) == (1 - criteria.BE_CI_LEVEL) / 2
+
+
+def test_ci_limits_rounded_half_up_to_two_decimals() -> None:
+    """URS-BE-016: two decimals, round half up (placeholder pending agency text)."""
+    assert criteria.BE_ROUND_DECIMALS == 2
+    assert criteria.BE_ROUNDING_MODE == "ROUND_HALF_UP"
+
+
+def test_be_minimums_and_auc0inf_placeholder() -> None:
+    """URS-BE-012, URS-BE-013, URS-BE-014: project-policy minimums and AUC0-inf default."""
+    assert criteria.BE_MIN_SUBJECTS_PER_SEQUENCE == 1
+    assert criteria.BE_MIN_RESIDUAL_DF == 1
+    assert criteria.BE_AUC0INF_DECISION_MAKING is True
 
 
 def test_dissolution_time_constants_match_15_minutes() -> None:

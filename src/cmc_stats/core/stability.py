@@ -18,10 +18,11 @@ from datetime import datetime
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-from scipy import linalg
 from scipy import stats as sps
 
 from cmc_stats import criteria
+from cmc_stats.core._linear import OlsFit as _Fit
+from cmc_stats.core._linear import ols as _ols
 from cmc_stats.models import (
     BatchFit,
     BatchShelfLife,
@@ -40,18 +41,6 @@ SEPARATE_MODEL_NOTE = (
     "df = n - 2), the ICH Q1E Appendix B.1 single-batch approach applied per batch; the "
     "earliest crossing governs. Provisional, pending confirmation against the Q1E text."
 )
-
-
-@dataclass(frozen=True)
-class _Fit:
-    coef: NDArray[np.float64]
-    xtx_inv: NDArray[np.float64]
-    rss: float
-    df: int
-
-    @property
-    def mse(self) -> float:
-        return self.rss / self.df
 
 
 @dataclass(frozen=True)
@@ -83,18 +72,6 @@ class _Line:
             float(self.x0 @ v @ self.x1),
             float(self.x1 @ v @ self.x1),
         )
-
-
-def _ols(x: NDArray[np.float64], y: NDArray[np.float64]) -> _Fit:
-    """Least squares via QR, so (X'X)^-1 is formed without squaring the condition number."""
-    n, p = x.shape
-    q, r = np.linalg.qr(x)
-    if np.min(np.abs(np.diag(r))) <= 1e-12 * np.max(np.abs(np.diag(r))):
-        raise ValueError("design matrix is rank deficient: a slope cannot be estimated")
-    coef = np.asarray(linalg.solve_triangular(r, q.T @ y), dtype=np.float64)
-    r_inv = np.asarray(linalg.solve_triangular(r, np.eye(p)), dtype=np.float64)
-    resid = y - x @ coef
-    return _Fit(coef=coef, xtx_inv=r_inv @ r_inv.T, rss=float(resid @ resid), df=n - p)
 
 
 def _stacked(

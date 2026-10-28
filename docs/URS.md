@@ -36,3 +36,18 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-BE-001 | Accept bioequivalence when the 90% CI of the GMR lies within 80.00-125.00%. | ICH M13A |
 | URS-BE-002 | Analyse log values with sequence, subject(sequence), period and treatment terms. | ICH M13A; FDA BE statistics guidance |
 | URS-BE-003 | Report within-subject CV and both TOST p-values. | FDA BE statistics guidance |
+| URS-BE-004 | Refuse replicate designs, whether declared or detected from a sequence longer than two treatments or a period other than 1 or 2, as not supported in v1. | Project scope (v1); ich-stats-rules |
+| URS-BE-005 | Refuse reference-scaled limits as not supported in v1. | Project scope (v1); ich-stats-rules |
+| URS-BE-006 | Refuse parallel designs as not supported in v1. | Project scope (v1); ich-stats-rules |
+| URS-BE-007 | Reject zero or negative PK values, naming the subject, period and parameter. | Project policy (log transform undefined) |
+| URS-BE-008 | Reject a subject missing a period, naming the subject. | User requirement 2026-10-28 |
+| URS-BE-009 | Reject duplicate subject-period records. | Project policy |
+| URS-BE-010 | Reject a sequence other than TR or RT, or a treatment that does not match the sequence (TR: period 1 T, period 2 R; RT the reverse), naming the subject. | Project policy |
+| URS-BE-011 | Reject a subject listed under both sequences. | Project policy |
+| URS-BE-012 | Require at least 1 subject per sequence; accept unequal sequence sizes and report n per sequence. | Project policy; user decision 2026-10-28 |
+| URS-BE-013 | Reject input whose residual degrees of freedom (n - 2 for a complete 2x2) would be below 1, giving the subject count, the resulting df and that at least 3 subjects are needed. | Project policy |
+| URS-BE-014 | AUC0-inf is optional but must be supplied for every record or none (a partial set is rejected, listing the missing records); when supplied it is analysed, and whether it counts towards the BE decision is set by BE_AUC0INF_DECISION_MAKING. | User decision 2026-10-28; agencies differ on whether AUC0-inf is decision-making (FDA vs EMA) - pending confirmation against the target agency text |
+| URS-BE-015 | Reject non-finite values, empty subject IDs, IDs with leading or trailing whitespace and IDs that differ only by letter case. | Project policy |
+| URS-BE-016 | Round the CI limits half up to BE_ROUND_DECIMALS before comparing them with the acceptance range; report both unrounded and rounded limits. | ich-stats-rules; rounding mode pending confirmation against the target agency text |
+| URS-BE-017 | For each parameter report the type I ANOVA table (df, SS, MS), n per sequence, residual df, MSE, log difference and SE, t value, point estimate and CI (full precision and rounded) and pass/fail; bioequivalent overall only if every decision-making parameter passes. When the rounded-CI decision and TOST disagree, say so in the result notes and the conclusion. | ICH M13A; FDA BE statistics guidance |
+| URS-BE-018 | Reject AUC0-inf smaller than AUC0-t, naming the subject and period; equal values are accepted. | Project policy (AUC0-inf = AUC0-t + extrapolated area) |

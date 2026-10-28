@@ -10,7 +10,15 @@ import json
 from datetime import UTC, datetime
 from typing import Any, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    field_validator,
+    model_validator,
+)
 
 from cmc_stats import __version__, criteria
 
@@ -20,6 +28,9 @@ DissolutionDecisionBasis = Literal["rapid_dissolution", "mean_f2", "bootstrap_f2
 StabilityDirection = Literal["decrease", "increase", "either"]
 StabilityModel = Literal["pooled", "common_slope", "separate"]
 ShelfLifeLimitedBy = Literal["crossing", "extrapolation_cap", "bound_below_limit_at_start"]
+BeDesign = Literal["2x2_crossover", "replicate", "parallel"]
+BeLimits = Literal["average", "reference_scaled"]
+BeParameter = Literal["cmax", "auc0t", "auc0inf"]
 
 
 class _Frozen(BaseModel):
@@ -399,6 +410,223 @@ class StabilityResult(_Frozen):
     extrapolation: ExtrapolationCap
     proposed_shelf_life_months: int
     limited_by: ShelfLifeLimitedBy
+    conclusion: str
+    notes: tuple[str, ...]
+    warnings: tuple[str, ...]
+
+
+# --- Bioequivalence inputs (ICH M13A, 2024; FDA BE statistics guidance) --------------------
+
+
+class BeRecord(_Frozen):
+    """One subject-period result of a 2x2 crossover (URS-BE-007, URS-BE-015).
+
+    Values are kept as entered. ``auc0inf`` is optional (URS-BE-014) but, when used, must be
+    present on every record (checked by ``BeInput``).
+    """
+
+    subject: str = Field(min_length=1)
+    sequence: str
+    period: StrictInt
+    treatment: Literal["T", "R"]
+    cmax: float
+    auc0t: float
+    auc0inf: float | None = None
+
+    @field_validator("subject")
+    @classmethod
+    def _no_padding(cls, subject: str) -> str:
+        """URS-BE-015: an ID with leading or trailing spaces would make a second subject."""
+        if subject != subject.strip():
+            raise ValueError(f"subject ID {subject!r} has leading or trailing whitespace")
+        return subject
+
+    @model_validator(mode="after")
+    def _positive(self) -> Self:
+        """URS-BE-007: PK values > 0 (log transform); URS-BE-018: AUC0-inf >= AUC0-t."""
+        for name in ("cmax", "auc0t", "auc0inf"):
+            value = getattr(self, name)
+            if value is not None and value <= 0:
+                raise ValueError(
+                    f"subject {self.subject}, period {self.period}: {name} must be > 0 for "
+                    f"the log transform; got {value}"
+                )
+        if self.auc0inf is not None and self.auc0inf < self.auc0t:
+            raise ValueError(
+                f"subject {self.subject}, period {self.period}: auc0inf ({self.auc0inf}) is "
+                f"smaller than auc0t ({self.auc0t}); AUC0-inf cannot be below AUC0-t"
+            )
+        return self
+
+
+class BeInput(_Frozen):
+    """2x2 crossover bioequivalence input (ICH M13A; URS-BE-004 to 015).
+
+    v1 supports only the 2x2 crossover (sequences TR and RT) with average-BE limits. The design
+    and limits must be stated; there are no defaults. Records may be in any order.
+    """
+
+    design: BeDesign
+    limits: BeLimits
+    records: tuple[BeRecord, ...]
+
+    @field_validator("design")
+    @classmethod
+    def _crossover_only(cls, design: BeDesign) -> BeDesign:
+        """URS-BE-004, URS-BE-006: replicate and parallel designs are refused."""
+        if design != "2x2_crossover":
+            raise ValueError(
+                f"{design} designs are not supported in v1: only the 2x2 crossover "
+                "(sequences TR and RT) is implemented"
+            )
+        return design
+
+    @field_validator("limits")
+    @classmethod
+    def _average_only(cls, limits: BeLimits) -> BeLimits:
+        """URS-BE-005: reference-scaled limits are refused."""
+        if limits != "average":
+            raise ValueError(
+                "reference-scaled limits are not supported in v1: only average bioequivalence "
+                f"({criteria.BE_LOWER_PCT:.2f}-{criteria.BE_UPPER_PCT:.2f}%) is implemented"
+            )
+        return limits
+
+    @model_validator(mode="after")
+    def _complete_crossover(self) -> Self:
+        """URS-BE-004, 008 to 014: a complete, consistent 2x2 crossover. Order matters: a
+        replicate layout is reported as such before it can look like a missing period."""
+        recs = self.records
+        for r in recs:  # URS-BE-004 (detected), URS-BE-010 (sequence label)
+            if len(r.sequence) > 2:
+                raise ValueError(
+                    f"subject {r.subject}: sequence '{r.sequence}' implies a replicate design; "
+                    "replicate designs are not supported in v1"
+                )
+            if r.period not in (1, 2):
+                raise ValueError(
+                    f"subject {r.subject}: period {r.period} implies a replicate design; "
+                    "replicate designs are not supported in v1"
+                )
+            if r.sequence not in ("TR", "RT"):
+                raise ValueError(
+                    f"subject {r.subject}: sequence '{r.sequence}' must be 'TR' or 'RT'"
+                )
+
+        keys = [(r.subject, r.period) for r in recs]  # URS-BE-009
+        duplicates = sorted({k for k in keys if keys.count(k) > 1})
+        if duplicates:
+            raise ValueError(
+                "duplicate subject-period record(s): "
+                + ", ".join(f"{s} period {p}" for s, p in duplicates)
+            )
+        by_case: dict[str, set[str]] = {}  # URS-BE-015: IDs differing only by letter case
+        for r in recs:
+            by_case.setdefault(r.subject.casefold(), set()).add(r.subject)
+        clashes = [sorted(ids) for ids in by_case.values() if len(ids) > 1]
+        if clashes:
+            raise ValueError(
+                "subject IDs differ only by letter case: "
+                + "; ".join(", ".join(repr(i) for i in ids) for ids in clashes)
+            )
+
+        sequences: dict[str, set[str]] = {}
+        periods: dict[str, set[int]] = {}
+        for r in recs:
+            sequences.setdefault(r.subject, set()).add(r.sequence)
+            periods.setdefault(r.subject, set()).add(r.period)
+        for subject, seqs in sequences.items():  # URS-BE-011
+            if len(seqs) > 1:
+                raise ValueError(f"subject {subject} is listed under both sequences")
+        for r in recs:  # URS-BE-010 (treatment matches sequence)
+            expected = "T" if (r.sequence == "TR") == (r.period == 1) else "R"
+            if r.treatment != expected:
+                raise ValueError(
+                    f"subject {r.subject} (sequence {r.sequence}): period {r.period} must be "
+                    f"treatment {expected}; got {r.treatment}"
+                )
+        for subject, got in periods.items():  # URS-BE-008
+            missing = sorted({1, 2} - got)
+            if missing:
+                raise ValueError(f"subject {subject}: missing period {missing[0]}")
+
+        for seq in ("TR", "RT"):  # URS-BE-012
+            n_seq = sum(1 for s in sequences.values() if seq in s)
+            if n_seq < criteria.BE_MIN_SUBJECTS_PER_SEQUENCE:
+                raise ValueError(
+                    f"sequence {seq}: {n_seq} subjects; at least "
+                    f"{criteria.BE_MIN_SUBJECTS_PER_SEQUENCE} subject per sequence required "
+                    "(project policy)"
+                )
+        n = len(sequences)  # URS-BE-013: complete 2x2 has 2n results and n + 2 parameters
+        df = n - 2
+        if df < criteria.BE_MIN_RESIDUAL_DF:
+            raise ValueError(
+                f"{n} subjects give residual degrees of freedom {df}; at least "
+                f"{criteria.BE_MIN_RESIDUAL_DF} required, so at least "
+                f"{criteria.BE_MIN_RESIDUAL_DF + 2} subjects are needed (project policy)"
+            )
+
+        with_inf = [r.auc0inf is not None for r in recs]  # URS-BE-014
+        if any(with_inf) and not all(with_inf):
+            gaps = [f"{r.subject} period {r.period}" for r in recs if r.auc0inf is None]
+            raise ValueError(
+                "auc0inf supplied for some records but missing for: "
+                + ", ".join(gaps)
+                + "; supply it for every record or none"
+            )
+        return self
+
+
+# --- Bioequivalence results ----------------------------------------------------------------
+
+
+class AnovaRow(_Frozen):
+    """One row of the sequential (type I) ANOVA table on the log scale (URS-BE-002, 017)."""
+
+    term: str
+    df: int
+    ss: float
+    ms: float
+
+
+class BeParameterResult(_Frozen):
+    """Analysis of one PK parameter (URS-BE-001 to 003, 012, 016, 017).
+
+    CI limits are kept at full precision; ``ci_*_rounded`` are the values used for the
+    decision (URS-BE-016).
+    """
+
+    parameter: BeParameter
+    decision_making: bool
+    n_tr: int
+    n_rt: int
+    df: int
+    mse: float
+    diff_log: float
+    se_log: float
+    t_value: float
+    pe_pct: float
+    ci_lower_pct: float
+    ci_upper_pct: float
+    ci_lower_rounded: float
+    ci_upper_rounded: float
+    within_limits: bool
+    tost_p_lower: float
+    tost_p_upper: float
+    cv_within_pct: float
+    anova: tuple[AnovaRow, ...]
+    notes: tuple[str, ...]
+
+
+class BeResult(_Frozen):
+    """Full 2x2 crossover BE result (URS-BE-001 to 017, URS-GEN-001, URS-GEN-002)."""
+
+    inputs: BeInput
+    metadata: ResultMetadata
+    parameters: tuple[BeParameterResult, ...]
+    decision_parameters: tuple[BeParameter, ...]
+    bioequivalent: bool
     conclusion: str
     notes: tuple[str, ...]
     warnings: tuple[str, ...]
