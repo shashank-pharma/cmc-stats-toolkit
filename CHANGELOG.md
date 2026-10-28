@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.5.0 - 2026-10-28
+No calculated result changes for existing inputs: every number from 0.4.0 is reproduced (all
+golden tests pass unchanged). Two behaviour changes to note:
+- Result JSON gains `metadata.source_files` (an empty list when the input did not come from
+  a file).
+- Stability input that 0.4.0 accepted is now rejected when batch labels have leading or
+  trailing whitespace or differ only by letter case (URS-STAB-015); such input used to run
+  as extra batches.
+
+Versioning: pre-1.0 versions may change behaviour (as above) in a minor release; 1.0.0 is
+reserved for when all pending confirmations listed in docs/traceability.md are closed.
+
+### Added
+- FastAPI app `cmc_stats.api` (URS-API-001 to 006): `GET /health`; `POST /dissolution`,
+  `/stability` and `/be` taking the existing input models and returning the core result
+  models unchanged; invalid input and core `ValueError`s give 422, an internal result that
+  fails its own model gives 500.
+- Streamlit app `cmc_stats.ui` (URS-UI-001 to 014), calling the core directly: three tabs
+  with the disclaimer, CSV template download, upload or template dummy data (with the
+  warning "Result from template dummy data, not your data"), explicit settings with no
+  defaults, warning boxes for provisional and pending-confirmation notes, full-precision
+  tables and Plotly line/bar charts.
+- `cmc_stats.ui_helpers`: strict stdlib-csv parsing (blank cells, unknown columns, non-UTF-8,
+  NaN/inf/decimal-comma text rejected with row and column), templates, settings checks,
+  `run_analysis`, notes, tables and charts; all unit-tested.
+- `SourceFile` model and `ResultMetadata.source_files`: name, size and SHA-256 of the raw
+  uploaded bytes (URS-GEN-003); optional `source_files` argument on `compare_profiles`,
+  `estimate_shelf_life` and `assess_bioequivalence`, not part of `input_hash`.
+- Sample-data pack in `sample_data/` (URS-GEN-004): 8 dummy CSVs in the template format with
+  seeded generators (numpy 2.5.4, R 4.6.1), `build_expected.py` and `expected.json`, checked by
+  `tests/test_sample_data.py`.
+- Requirements URS-GEN-003, URS-GEN-004, URS-API-001 to 006 and URS-UI-001 to 014.
+- Dev dependency `httpx2` for FastAPI's `TestClient` (replaces `httpx`, which Starlette 1.9
+  deprecates for its test client).
+
+### Changed
+- URS-STAB-015 widened: stability batch labels with leading or trailing whitespace, or
+  differing only by letter case, are rejected (as BE subject IDs already were).
+- `/verify` measures coverage on `src/cmc_stats` (a directory) instead of the `cmc_stats`
+  package, so `ui.py`, run by Streamlit's AppTest as `__main__`, is counted.
+- `test_dissolution_golden` now cites URS-DISS-002, so every test traces to a requirement.
+- No existing constant changed.
+
+### Fixed
+- Nothing.
+
 ## 0.4.0 - 2026-10-28
 No calculated result changes for existing inputs: this release adds new calculations only.
 
