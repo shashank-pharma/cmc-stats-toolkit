@@ -14,15 +14,16 @@ supply the guideline text. Never fill a gap from memory. Put every numeric const
 1. Fit assay (or other attribute) against time by least squares, per batch.
 2. Poolability, tested at significance level 0.25 (ANCOVA):
    - First test equality of slopes (batch x time interaction) using the full model's error.
-   - If slope p >= 0.25, refit with a common slope and test equality of intercepts, using the
+   - Only p > 0.25 pools; p <= 0.25 rejects equality (user decision 2026-10-29; ICH Q1A(R2)
+     2.1.9 and 2.2.9 "more than 0.25"; ICH Q1 Step 2 draft Annex 2 p. A2-6; URS-STAB-019).
+   - If slope p > 0.25, refit with a common slope and test equality of intercepts, using the
      common-slope model's residual error (sequential ANCOVA; confirmed by the user 2026-10-27).
-   - Both p >= 0.25: pool all batches into one line.
+   - Both p > 0.25: pool all batches into one line.
    - Slopes equal, intercepts differ: common slope, separate intercepts; worst batch governs.
-   - Slopes differ: fit batches separately; the batch that reaches the limit first governs.
-     Each batch's bound uses that batch's own regression (own residual error, df = n - 2),
-     i.e. the single-batch approach of ICH Q1E Appendix B.1 applied to each batch, shortest
-     shelf-life taken. Provisional (user, 2026-10-27): pending confirmation against the Q1E
-     Appendix B text. The alternative (pooled error from the full ANCOVA model) is not used.
+   - Slopes differ: individual intercepts and individual slopes with the pooled mean square
+     error calculated from all batches (the full ANCOVA model, df = N - 2k); the batch that
+     reaches the limit first governs. ICH Q1E (2003) Appendix B.2.2.1 (also B.2.1), p. 10;
+     confirmed against the Q1E text 2026-10-29. A batch's own error (df = n - 2) is not used.
 3. Shelf-life is the earliest time the 95% confidence bound for the mean line meets the
    acceptance criterion:
    - One-sided lower bound for an attribute expected to decrease (assay).

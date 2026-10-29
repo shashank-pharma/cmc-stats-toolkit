@@ -17,6 +17,8 @@ Current changes:
    Flag any requirement without a test, and any test without a requirement.
 3. Add a dated entry to `CHANGELOG.md` (Added, Changed, Fixed). Bump the version in
    `pyproject.toml` following semantic versioning: patch for fixes, minor for new features,
-   major for changed results or removed features.
+   major for changed results or removed features. Before 1.0.0, a changed result bumps the
+   minor version instead (1.0.0 is reserved until every item in docs/RELEASE-1.0.0.md is
+   closed).
 4. If any calculated result changes for existing inputs, say so at the top of the changelog
-   entry. That is a major version change.
+   entry. That is a major version change (a minor one before 1.0.0, as in step 3).

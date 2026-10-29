@@ -184,7 +184,7 @@ def test_intercept_test_uses_common_slope_error(b003: list[float]) -> None:
 
 
 def test_intercepts_not_tested_when_slopes_differ() -> None:
-    """URS-STAB-002: when slope p < 0.25 the intercept test is not run."""
+    """URS-STAB-002: when slope p <= 0.25 the intercept test is not run."""
     pool = stab.poolability(with_b003(B003_FASTER))
     assert pool.slopes.p_value < criteria.POOLABILITY_ALPHA
     assert pool.intercepts is None
@@ -207,17 +207,30 @@ def test_model_chosen_for_each_branch(b003: list[float], model: str) -> None:
 @pytest.mark.parametrize(
     ("slope_p", "intercept_p", "model"),
     [
-        (0.25, 0.25, "pooled"),
-        (0.9, 0.25, "pooled"),
-        (0.25, 0.2499999, "common_slope"),
+        (0.25, None, "separate"),
         (0.2499999, None, "separate"),
+        (0.2500001, 0.25, "common_slope"),
+        (0.9, 0.25, "common_slope"),
+        (0.2500001, 0.2500001, "pooled"),
     ],
 )
-def test_select_model_treats_p_equal_to_0_25_as_poolable(
+def test_select_model_rejects_equality_at_p_0_25(
     slope_p: float, intercept_p: float | None, model: str
 ) -> None:
-    """URS-STAB-002: p >= 0.25 means poolable; the boundary value itself pools."""
+    """URS-STAB-019: only p > 0.25 pools; p equal to 0.25 rejects equality."""
     assert stab.select_model(slope_p, intercept_p) == model
+
+
+def test_poolability_tests_intercepts_only_above_0_25(monkeypatch: pytest.MonkeyPatch) -> None:
+    """URS-STAB-019: a slope p exactly at alpha rejects equal slopes; intercepts are not tested."""
+    data = with_b003(B003_SIMILAR)
+    slope_p = stab.poolability(data).slopes.p_value
+    assert slope_p > criteria.POOLABILITY_ALPHA
+    monkeypatch.setattr(criteria, "POOLABILITY_ALPHA", slope_p)
+    pool = stab.poolability(data)
+    assert pool.slopes.p_value == slope_p
+    assert pool.intercepts is None
+    assert pool.model == "separate"
 
 
 @pytest.mark.parametrize(
@@ -261,16 +274,18 @@ def test_common_slope_bound_uses_common_model_for_each_batch() -> None:
     )
 
 
-def test_separate_bound_uses_each_batch_own_fit() -> None:
-    """URS-STAB-003: separate model uses the batch's own regression error, df n-2 (provisional,
-    ICH Q1E Appendix B.1 per batch, pending confirmation against the Q1E text)."""
+@pytest.mark.parametrize("label", ["B001", "B002", "B003"])
+def test_separate_bound_uses_full_model_pooled_mse(label: str) -> None:
+    """URS-STAB-003: separate model uses each batch's intercept and slope with the pooled mean
+    square error of the full model, df N - 2k (ICH Q1E Appendix B.2.2.1, p. 10)."""
     data = with_b003(B003_FASTER)
-    d = frame(data)
-    grid = np.array([0.0, 12.0, 24.6])
-    ref = smf.ols("y ~ time", d[d.batch == "B003"]).fit()
-    expected = ref.get_prediction(pd.DataFrame({"time": grid})).conf_int(alpha=0.10)[:, 0]
+    grid = np.array([0.0, 12.0, 24.3])
+    ref = smf.ols("y ~ C(batch) * time", frame(data)).fit()
+    assert ref.df_resid == 15
+    new = pd.DataFrame({"batch": [label] * grid.size, "time": grid})
+    expected = ref.get_prediction(new).conf_int(alpha=0.10)[:, 0]
     np.testing.assert_allclose(
-        stab.lower_bound(data, "separate", "B003", grid), expected, rtol=0, atol=1e-10
+        stab.lower_bound(data, "separate", label, grid), expected, rtol=0, atol=1e-10
     )
 
 
@@ -439,12 +454,17 @@ def test_result_reports_every_reviewer_value() -> None:
     assert "29" in result.conclusion
 
 
-def test_separate_model_uses_own_df_and_t() -> None:
-    """URS-STAB-005: separate model reports each batch's own df (n-2) and t value."""
-    result = stab.estimate_shelf_life(with_b003(B003_FASTER), timestamp=FIXED_TIME)
+def test_separate_model_uses_full_model_df_and_t() -> None:
+    """URS-STAB-005: separate model reports the full model's df (N - 2k) and its t value, while
+    the per-batch fits keep their own df (n - 2)."""
+    data = with_b003(B003_FASTER)
+    result = stab.estimate_shelf_life(data, timestamp=FIXED_TIME)
+    n, k = sum(len(b.values) for b in data.batches), len(data.batches)
+    assert result.poolability.model == "separate"
     for line in result.per_batch:
-        assert line.df == 5
-        assert line.t_value == pytest.approx(sps.t.ppf(0.95, 5))
+        assert line.df == n - 2 * k == 15
+        assert line.t_value == pytest.approx(sps.t.ppf(criteria.SHELF_LIFE_CONFIDENCE, 15))
+    assert all(f.residual_df == 5 for f in result.batch_fits)
 
 
 def test_bound_below_limit_at_start_gives_zero_shelf_life() -> None:

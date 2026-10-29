@@ -10,9 +10,9 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-GEN-004 | A sample-data pack in sample_data/ uses the exact UI template CSV format, is regenerated reproducibly from committed seeded scripts, and lists each file's settings and expected result; a test runs every file through the UI parsing and core path and checks those expectations. | Project policy (dummy data only); user requirement 2026-10-28 |
 | URS-STAB-001 | Fit a least-squares line of attribute against time for each batch. | ICH Q1E |
 | URS-STAB-002 | Test equality of slopes, then intercepts, at significance 0.25 and choose the model. | ICH Q1E |
-| URS-STAB-003 | Report the time where the one-sided 95% bound of the mean meets the limit. | ICH Q1E |
+| URS-STAB-003 | Report the time where the one-sided 95% bound of the mean meets the limit. When slopes differ, each batch's bound uses its own intercept and slope with the pooled mean square error of the full model (individual intercepts and slopes, df = N - 2k). | ICH Q1E; separate slopes: ICH Q1E (2003) Appendix B.2.2.1 and B.2.1, p. 10 |
 | URS-STAB-004 | Cap the proposed shelf-life by the Appendix A extrapolation rule. | ICH Q1E Appendix A |
-| URS-STAB-005 | Report the model chosen, slope and intercept F, df and p (intercept not tested when slopes differ), residual df, t value, crossing time and the proposed shelf-life rounded down to whole months. | ICH Q1E |
+| URS-STAB-005 | Report the model chosen, slope and intercept F, df and p (intercept not tested when slopes differ), residual df and t value of the model used for each bound (full model, df = N - 2k, when slopes differ), crossing time and the proposed shelf-life rounded down to whole months. | ICH Q1E; separate slopes: ICH Q1E (2003) Appendix B.2.2.1 and B.2.1, p. 10 |
 | URS-STAB-006 | Accept only an attribute expected to decrease, with a lower limit; refuse "increase" and "either" as not supported in v1. | Project scope (v1) |
 | URS-STAB-007 | Apply the extrapolation cap only when there is no significant change at accelerated and statistical analysis was performed; refuse every other combination. | ICH Q1E Appendix A |
 | URS-STAB-008 | Take X, the period covered by long-term data, as the shortest of the batches' last time points; report X and the cap min(2X, X + 12). | ICH Q1E Appendix A; user decision 2026-10-27 |
@@ -26,6 +26,7 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-STAB-016 | If the bound is at or below the limit at time 0, report a shelf-life of 0 and that no shelf-life is supported; if the bound never meets the limit, the extrapolation cap sets the shelf-life and a note says so. | Project policy |
 | URS-STAB-017 | With fewer than 3 batches, add a warning (not an error) to the result; the calculation still runs. | ICH Q1A(R2), Selection of Batches (drug substance and drug product); section numbers pending confirmation |
 | URS-STAB-018 | Reject negative values (naming the batch) and a negative lower limit; values above 100% are kept as entered. | Project policy (reject bad input loudly) |
+| URS-STAB-019 | A poolability test pools only when p > 0.25; at p <= 0.25 equality is rejected (slopes, then intercepts). | ICH Q1A(R2) 2.1.9 and 2.2.9 ("more than 0.25"), pp. 5 and 13; ICH Q1 Step 2 draft (2025) Annex 2 A2-1.2-1, p. A2-6; user decision 2026-10-29 (Shashank) |
 | URS-DISS-001 | Use only time points up to the first where both products reach 85%. | FDA IR dissolution guidance (1997) |
 | URS-DISS-002 | Calculate f1 and f2 from mean profiles. | FDA IR dissolution guidance (1997) |
 | URS-DISS-003 | Check CV limits (20% early, 10% later) and switch to bootstrap f2 when they fail. | FDA IR dissolution guidance (1997) |

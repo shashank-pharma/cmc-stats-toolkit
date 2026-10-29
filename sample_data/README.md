@@ -34,10 +34,11 @@ Expected values are independent R output (the same data as GOLD-STAB-001..003).
 |---|---|---|---|---|---|
 | `stability_b003_similar.csv` | similar to B001/B002 | pooled | none (one line) | 34.60 | 34 months |
 | `stability_b003_start.csv` | lower start, same slope | common slope | B003 | 29.82 | 29 months |
-| `stability_b003_faster.csv` | faster decline | separate | B003 | 24.62 | 24 months |
+| `stability_b003_faster.csv` | faster decline | separate | B003 | 24.33 | 24 months |
 
 All three are capped at 36 months (Appendix A, X = 24). The separate-slopes result uses each
-batch's own error term: provisional, pending confirmation against the ICH Q1E text.
+batch's own intercept and slope with the pooled mean square error of the full model
+(df = N - 2k), ICH Q1E Appendix B.2.2.1. Up to 0.5.0 it used each batch's own error (24.62).
 
 ## Dissolution (tab: Dissolution)
 

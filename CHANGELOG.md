@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.6.0 - 2026-10-29
+Calculated result changed: when batch slopes differ (separate-slopes model), each batch's
+one-sided 95% bound now uses its own intercept and slope with the pooled mean square error of
+the full ANCOVA model (df = N - 2k), as ICH Q1E (2003) Appendix B.2.2.1, p. 10 requires
+(PC-STAB-01, confirmed 2026-10-29). Up to 0.5.0 each batch used its own regression error
+(df = n - 2). GOLD-STAB-003 crossing 24.62037974 -> 24.33389941 months (B001 32.84197599 ->
+33.44940849, B002 32.50987285 -> 33.32061198; df 5 -> 15, t 2.01504837 -> 1.75305036);
+proposed shelf-life unchanged (24 months), B003 still governs. Pooled and common-slope results
+are unchanged (GOLD-STAB-001 and 002 reproduced exactly by R).
+
+Behaviour change: a poolability p-value of exactly 0.25 now rejects equality (only p > 0.25
+pools; URS-STAB-019, user decision 2026-10-29). In 0.5.0 p = 0.25 pooled. No golden case sits
+on the boundary.
+
+### Added
+- URS-STAB-019 (p = 0.25 boundary rule) with tests
+  test_select_model_rejects_equality_at_p_0_25 and
+  test_poolability_tests_intercepts_only_above_0_25.
+
+### Changed
+- `core.stability`: separate-slopes lines take the full model's residual error and df;
+  `select_model` and `poolability` pool only when p > 0.25. `SEPARATE_MODEL_NOTE` now cites
+  Q1E Appendix B.2.2.1 and is no longer marked provisional, so the UI no longer shows it in
+  the warning box (URS-UI-011).
+- URS-STAB-003 and URS-STAB-005 cite Q1E Appendix B.2.2.1 and B.2.1, p. 10.
+- `tests/golden/r/stability_gold.R`: separate lines predicted from `lm(y ~ batch * time)`;
+  boundary rule p > 0.25. GOLD-STAB-003 regenerated from R 4.6.1 (expected values not
+  edited by hand); `sample_data/expected.json` rebuilt with `build_expected.py`.
+- Tests replaced: test_separate_bound_uses_each_batch_own_fit ->
+  test_separate_bound_uses_full_model_pooled_mse; test_separate_model_uses_own_df_and_t ->
+  test_separate_model_uses_full_model_df_and_t;
+  test_select_model_treats_p_equal_to_0_25_as_poolable -> test_select_model_rejects_equality_at_p_0_25;
+  test_prominent_notes_pick_provisional_and_pending ->
+  test_prominent_notes_pick_pending_and_skip_confirmed_separate_note.
+- ich-stats-rules skill, `docs/traceability.md`, `sample_data/README.md` and
+  `docs/RELEASE-1.0.0.md` (PC-STAB-01 confirmed) updated to match.
+- No constant in `criteria.py` changed.
+
+### Fixed
+- The separate-slopes bound now follows ICH Q1E Appendix B.2.2.1 (see above).
+
 ## 0.5.0 - 2026-10-28
 No calculated result changes for existing inputs: every number from 0.4.0 is reproduced (all
 golden tests pass unchanged). Two behaviour changes to note:

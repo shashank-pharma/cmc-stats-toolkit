@@ -438,12 +438,15 @@ def test_template_run_records_template_name() -> None:
 # --- URS-UI-011: prominent notes ----------------------------------------------------------
 
 
-def test_prominent_notes_pick_provisional_and_pending() -> None:
-    """URS-UI-011: separate-slopes (provisional) and Q1A(R2) (pending) notes are surfaced."""
+def test_prominent_notes_pick_pending_and_skip_confirmed_separate_note() -> None:
+    """URS-UI-011: the Q1A(R2) (pending) warning is surfaced; the separate-slopes note, confirmed
+    against ICH Q1E Appendix B.2.2.1, is an ordinary note and is not promoted."""
     data = stab_golden("GOLD-STAB-003")
     two_batches = data.model_copy(update={"batches": data.batches[1:]})
-    notes = ui.prominent_notes(stability.estimate_shelf_life(two_batches))
-    assert any("Provisional" in n for n in notes)
+    result = stability.estimate_shelf_life(two_batches)
+    notes = ui.prominent_notes(result)
+    assert stability.SEPARATE_MODEL_NOTE in result.notes
+    assert stability.SEPARATE_MODEL_NOTE not in notes
     assert any("pending confirmation" in n for n in notes)
 
 
