@@ -41,8 +41,11 @@ supply the guideline text. Never fill a gap from memory. Put every numeric const
 5. Report the model chosen, both p-values, degrees of freedom, the t value used, the
    crossing time and the proposed shelf-life (rounded down to whole months).
 
-Note: ICH Q1 is being consolidated (Step 2 draft, April 2025). Keep Q1E as the rule set
-until the user confirms the final text, and store the guideline version in each result.
+Note: ICH Q1 is being consolidated (Step 2 draft, 11 April 2025). Keep Q1A(R2) and Q1E as the
+rule set until the user confirms the final text, and store the guideline version in each result.
+Known limitation (Shashank, 2026-10-29, PC-STAB-06, URS-STAB-024): re-check these rules when
+ICH Q1 reaches Step 4 or is adopted by FDA. v1 requires the storage condition and refuses
+refrigerated, freezer and significant change at accelerated (URS-STAB-022, 023).
 
 ## 2. Dissolution similarity
 

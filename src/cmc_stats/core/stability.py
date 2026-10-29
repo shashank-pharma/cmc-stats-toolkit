@@ -4,8 +4,8 @@ Rules follow ICH Q1E (2003), Evaluation for Stability Data, Appendices A and B, 
 in the ich-stats-rules skill. v1 covers an attribute expected to decrease
 (one-sided 95% lower bound against a lower limit) and the Appendix A branch "no significant
 change at accelerated, statistical analysis performed" at room temperature (Q1E 2.4.1.2 and
-Appendix A; refrigerated and other branches are known limitations, URS-STAB-020 and 021). All
-values are kept at full precision;
+Appendix A; refrigerated, freezer and other branches are refused at input and noted as known
+limitations, URS-STAB-020 to 024). All values are kept at full precision;
 only the proposed shelf-life is rounded down to whole months.
 
 Design matrices (k batches, N results):
@@ -45,13 +45,18 @@ APPENDIX_A_BRANCH_LIMITATION_NOTE = (
     "Known limitation: the extrapolation cap uses only the branch room temperature, no "
     "significant change at accelerated, statistical analysis performed (ICH Q1E 2.4.1.2 and "
     "Appendix A: Y up to 2X, but not exceeding X + 12 months). The refrigerated branch (up to "
-    "1.5X, but not exceeding X + 6 months, Q1E 2.5.1.1) and the other Appendix A branches are "
-    "not supported in v1; do not use this cap for a refrigerated product."
+    "1.5X, but not exceeding X + 6 months, Q1E 2.5.1.1), freezer storage and the other "
+    "Appendix A branches are not supported in v1 and are refused at input."
 )
 X_DEFINITION_LIMITATION_NOTE = (
     "Known limitation: X, the period covered by long-term data (ICH Q1E Appendix A), is taken "
     "as the shortest of the batches' last time points. This is a conservative reading; Q1E "
     "does not define X further."
+)
+GUIDELINE_BASIS_LIMITATION_NOTE = (
+    "Known limitation: the rules follow ICH Q1A(R2) and ICH Q1E (Step 4, 2003). The "
+    "consolidated ICH Q1 is a Step 2 draft (11 April 2025), not final, and is not applied; "
+    "re-check these rules when ICH Q1 reaches Step 4 or is adopted by FDA."
 )
 SEPARATE_MODEL_NOTE = (
     "Slopes differ: each batch's bound uses its own intercept and slope with the pooled mean "
@@ -315,9 +320,9 @@ def extrapolation_cap(data: StabilityInput) -> ExtrapolationCap:
     ICH Q1E (2003), 2.4.1.2, p. 4, and Appendix A, p. 8: "Y = up to 2X, but not exceeding
     X + 12 months", branch "no significant change at accelerated, statistical analysis
     performed" (the only branch ``StabilityInput`` accepts), room temperature only; the
-    refrigerated branch is not supported (known limitation, URS-STAB-020). X ("period covered
-    by long-term data") is the shortest of the batches' last time points (user decision
-    2026-10-27; known limitation, URS-STAB-021).
+    refrigerated branch is refused at input (URS-STAB-022; known limitation, URS-STAB-020).
+    X ("period covered by long-term data") is the shortest of the batches' last time points
+    (user decision 2026-10-27; known limitation, URS-STAB-021).
     """
     x = min(max(b.times_months) for b in data.batches)
     factor = criteria.EXTRAPOLATION_FACTOR_STATS
@@ -398,6 +403,7 @@ def estimate_shelf_life(
         f"Model: {model_text} (poolability tested at {pool.alpha}).",
         APPENDIX_A_BRANCH_LIMITATION_NOTE,
         X_DEFINITION_LIMITATION_NOTE,
+        GUIDELINE_BASIS_LIMITATION_NOTE,
     ]
     if model == "separate":
         notes.append(SEPARATE_MODEL_NOTE)

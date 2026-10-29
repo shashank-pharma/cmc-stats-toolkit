@@ -27,6 +27,7 @@ DISCLAIMER = "Educational and decision-support use only. Not validated for GxP u
 
 DissolutionDecisionBasis = Literal["rapid_dissolution", "mean_f2", "bootstrap_f2"]
 StabilityDirection = Literal["decrease", "increase", "either"]
+StabilityStorageCondition = Literal["room_temperature", "refrigerated", "freezer"]
 StabilityModel = Literal["pooled", "common_slope", "separate"]
 ShelfLifeLimitedBy = Literal["crossing", "extrapolation_cap", "bound_below_limit_at_start"]
 BeDesign = Literal["2x2_crossover", "replicate", "parallel"]
@@ -316,14 +317,17 @@ class StabilityInput(_Frozen):
     """Shelf-life input: batches, acceptance limit and Appendix A conditions (ICH Q1E).
 
     v1 supports only an attribute expected to decrease (for example assay) with a lower
-    limit, and only the ICH Q1E Appendix A branch "no significant change at accelerated,
-    statistical analysis performed". Both Appendix A conditions must be stated; there are no
-    defaults.
+    limit, stored at room temperature, and only the ICH Q1E Appendix A branch "no significant
+    change at accelerated, statistical analysis performed" (2.4.1.2, p. 4; Appendix A, p. 8).
+    The storage condition and both Appendix A conditions must be stated; there are no
+    defaults. Refrigerated and freezer storage and significant change at accelerated are
+    refused as not supported in v1 (URS-STAB-022, URS-STAB-023).
     """
 
     attribute: str = Field(min_length=1)
     unit: str = Field(min_length=1)
     direction: StabilityDirection
+    storage_condition: StabilityStorageCondition
     lower_limit: float = Field(ge=0)
     batches: tuple[StabilityBatch, ...]
     significant_change_at_accelerated: StrictBool
@@ -340,9 +344,38 @@ class StabilityInput(_Frozen):
             )
         return direction
 
+    @field_validator("storage_condition")
+    @classmethod
+    def _room_temperature_only(
+        cls, condition: StabilityStorageCondition
+    ) -> StabilityStorageCondition:
+        """URS-STAB-022: ICH Q1E 2.4.1.2 and Appendix A cap for room temperature only; the
+        refrigerated branch (2.5.1.1) and freezer storage are refused."""
+        if condition != "room_temperature":
+            raise ValueError(
+                f"storage condition '{condition}' is not supported in v1: only room "
+                "temperature (ICH Q1E 2.4.1.2 and Appendix A: Y up to 2X, but not exceeding "
+                "X + 12 months) is implemented"
+            )
+        return condition
+
+    @field_validator("significant_change_at_accelerated")
+    @classmethod
+    def _no_significant_change_only(cls, significant_change: bool) -> bool:
+        """URS-STAB-023: ICH Q1E Appendix A branches after significant change at accelerated
+        are refused."""
+        if significant_change:
+            raise ValueError(
+                "significant change at accelerated condition is not supported in v1: only the "
+                "ICH Q1E Appendix A branch with no significant change at accelerated is "
+                "implemented"
+            )
+        return significant_change
+
     @model_validator(mode="after")
     def _batches_and_branch(self) -> Self:
-        """URS-STAB-009 (>= 2 batches), URS-STAB-015 (unique labels), URS-STAB-007 (branch)."""
+        """URS-STAB-009 (>= 2 batches), URS-STAB-015 (unique labels), URS-STAB-007 (analysis
+        performed)."""
         n = len(self.batches)
         if n < criteria.STABILITY_MIN_BATCHES:
             raise ValueError(
@@ -362,12 +395,11 @@ class StabilityInput(_Frozen):
                 "batch labels differ only by letter case: "
                 + "; ".join(", ".join(repr(x) for x in group) for group in clashes)
             )
-        if self.significant_change_at_accelerated or not self.statistical_analysis_performed:
+        if not self.statistical_analysis_performed:
             raise ValueError(
                 "ICH Q1E Appendix A: only the branch with no significant change at accelerated "
                 "and statistical analysis performed is implemented; got "
-                f"significant_change_at_accelerated={self.significant_change_at_accelerated}, "
-                f"statistical_analysis_performed={self.statistical_analysis_performed}"
+                "statistical_analysis_performed=False"
             )
         return self
 

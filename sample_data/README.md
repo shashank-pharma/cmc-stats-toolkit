@@ -25,8 +25,8 @@ change in `expected.json` before committing; never change an expected value to m
 
 ## Stability (tab: Stability)
 
-Settings for all three: attribute Assay, unit % label claim, direction decrease, lower limit
-95.0, significant change at accelerated **No**, statistical analysis performed **Yes**.
+Settings for all three: attribute Assay, unit % label claim, direction decrease, storage
+condition **Room temperature**, lower limit 95.0, significant change at accelerated **No**, statistical analysis performed **Yes**.
 B001 and B002 are the same in each file; only B003 differs. Months 0, 3, 6, 9, 12, 18, 24.
 Expected values are independent R output (the same data as GOLD-STAB-001..003).
 
@@ -36,10 +36,12 @@ Expected values are independent R output (the same data as GOLD-STAB-001..003).
 | `stability_b003_start.csv` | lower start, same slope | common slope | B003 | 29.82 | 29 months |
 | `stability_b003_faster.csv` | faster decline | separate | B003 | 24.33 | 24 months |
 
-All three are capped at 36 months (Appendix A, X = 24). Two known limitations appear in the
-warning box on every stability result: only the room-temperature, statistical-analysis branch
-of the Appendix A cap is supported (not the refrigerated 1.5X / X + 6 branch), and X is taken
-as the shortest batch coverage. The separate-slopes result uses each
+All three are capped at 36 months (Appendix A, X = 24). Refrigerated or freezer storage, or
+significant change at accelerated, is refused as not supported in v1. Three known limitations
+appear in the warning box on every stability result: only the room-temperature,
+statistical-analysis branch of the Appendix A cap is supported (not the refrigerated 1.5X /
+X + 6 branch), X is taken as the shortest batch coverage, and the rules follow ICH Q1A(R2) and
+Q1E, not the draft consolidated ICH Q1. The separate-slopes result uses each
 batch's own intercept and slope with the pooled mean square error of the full model
 (df = N - 2k), ICH Q1E Appendix B.2.2.1. Up to 0.5.0 it used each batch's own error (24.62).
 

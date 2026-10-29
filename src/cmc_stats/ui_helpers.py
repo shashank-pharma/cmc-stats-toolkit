@@ -61,6 +61,7 @@ REQUIRED_SETTINGS: dict[Area, tuple[str, ...]] = {
         "unit",
         "direction",
         "lower_limit",
+        "storage_condition",
         "significant_change_at_accelerated",
         "statistical_analysis_performed",
     ),

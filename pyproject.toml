@@ -1,6 +1,6 @@
 [project]
 name = "cmc-stats-toolkit"
-version = "0.6.0"
+version = "0.7.0"
 description = "ICH Q1E shelf-life, dissolution f2 and bioequivalence statistics (educational, not GxP-validated)"
 readme = "README.md"
 requires-python = ">=3.12"

@@ -1,7 +1,17 @@
 # Changelog
 
-## Unreleased
-No calculated result changes.
+## 0.7.0 - 2026-10-29
+Behaviour change: `StabilityInput` has a new required field `storage_condition`
+("room_temperature", "refrigerated" or "freezer", no default; URS-STAB-022). Stability input
+or API requests without it, accepted by 0.6.0, are now rejected. Refrigerated and freezer
+storage, and `significant_change_at_accelerated` true (URS-STAB-023), are refused as "not
+supported in v1"; significant change was already refused in 0.6.0, but with a combined
+Appendix A message. No calculated result changes: R reproduces GOLD-STAB-001..003 exactly;
+their inputs gain `storage_condition: "room_temperature"` only, and the input hash of a
+stability result changes because the inputs now include it.
+
+Version: minor bump under the pre-1.0 policy (behaviour change, no calculated result
+change); not 1.0.0 because PC-STAB-07, PC-DISS-01..04, PC-BE-01..04 and PC-GEN-01 are open.
 
 ### Changed
 - PC-STAB-02 confirmed: the fewer-than-3-batches warning, `criteria.STABILITY_PRIMARY_BATCHES`
@@ -20,11 +30,14 @@ No calculated result changes.
 ### Known limitations (decided by Shashank, 2026-10-29)
 - Appendix A cap: room temperature, no significant change at accelerated, statistical
   analysis performed only. The refrigerated branch (1.5X, not exceeding X + 6 months, Q1E
-  2.5.1.1) and other branches are not supported, and there is no storage-condition input
-  to refuse a refrigerated product (PC-STAB-04, URS-STAB-020).
+  2.5.1.1) and other branches are not supported, and are refused at input (PC-STAB-04,
+  URS-STAB-020, URS-STAB-022, URS-STAB-023).
 - X is taken as the shortest batch coverage; Q1E defines X only as "period covered by
   long-term data" (PC-STAB-05, URS-STAB-021).
-Every stability result now carries both as notes, shown in the warning box.
+- Rules follow ICH Q1A(R2) and Q1E (Step 4, 2003); the consolidated ICH Q1 is a Step 2 draft
+  (11 April 2025) and is not applied. Re-check on Step 4 publication or FDA adoption
+  (PC-STAB-06, URS-STAB-024).
+Every stability result now carries all three as notes, shown in the warning box.
 
 ### Added
 - test_ui_app::test_two_batch_stability_run_shows_q1a_warning (URS-UI-011, URS-STAB-017):
@@ -32,6 +45,10 @@ Every stability result now carries both as notes, shown in the warning box.
 - URS-STAB-020 and URS-STAB-021 with tests; test_ui_helpers::
   test_prominent_notes_include_known_limitations and test_ui_app::
   test_stability_run_shows_known_limitations_in_warning_box.
+- URS-STAB-022 (`storage_condition`, UI selectbox with no default), URS-STAB-023 (own refusal
+  for significant change) and URS-STAB-024, with tests in test_stability, test_api and
+  test_ui_app.
+- URS-STAB-019 and the register cite Q1A(R2) 2.2.9 as "begins p. 12; quoted sentence p. 13".
 
 ## 0.6.0 - 2026-10-29
 Calculated result changed: when batch slopes differ (separate-slopes model), each batch's

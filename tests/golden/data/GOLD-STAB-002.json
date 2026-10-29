@@ -6,6 +6,7 @@
     "attribute": "Assay",
     "unit": "% label claim",
     "direction": "decrease",
+    "storage_condition": "room_temperature",
     "significant_change_at_accelerated": false,
     "statistical_analysis_performed": true,
     "lower_limit": 95.0,

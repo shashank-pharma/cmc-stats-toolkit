@@ -31,6 +31,7 @@ def set_stability(at: AppTest) -> None:
     at.text_input(key="stab_attribute").input("Assay")
     at.text_input(key="stab_unit").input("% label claim")
     at.selectbox(key="stab_direction").set_value("decrease")
+    at.selectbox(key="stab_storage").set_value("room_temperature")
     at.number_input(key="stab_lower_limit").set_value(95.0)
     at.selectbox(key="stab_sig_change").set_value(False)
     at.selectbox(key="stab_stats_done").set_value(True)
@@ -50,6 +51,7 @@ def test_run_disabled_until_file_and_settings_given(app: AppTest) -> None:
     assert app.selectbox(key="be_design").value is None
     assert app.selectbox(key="stab_direction").value is None
     assert app.number_input(key="stab_lower_limit").value is None
+    assert app.selectbox(key="stab_storage").value is None
     app.checkbox(key="example_stability").check().run()
     assert app.button(key="run_stability").disabled
     set_stability(app)
@@ -87,8 +89,8 @@ def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
 
 
 def test_stability_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
-    """URS-UI-011, URS-STAB-020, URS-STAB-021: both known-limitation notes appear in warning
-    boxes on a stability result."""
+    """URS-UI-011, URS-STAB-020, 021, 024: the known-limitation notes appear in warning boxes
+    on a stability result."""
     set_stability(app)
     app.run()
     app.button(key="run_stability").click().run()
@@ -96,6 +98,19 @@ def test_stability_run_shows_known_limitations_in_warning_box(app: AppTest) -> N
     shown = [w.value for w in app.tabs[TABS["stability"]].warning]
     assert stability.APPENDIX_A_BRANCH_LIMITATION_NOTE in shown
     assert stability.X_DEFINITION_LIMITATION_NOTE in shown
+    assert stability.GUIDELINE_BASIS_LIMITATION_NOTE in shown
+
+
+def test_refrigerated_storage_shows_not_supported_error(app: AppTest) -> None:
+    """URS-UI-009, URS-STAB-022: a refrigerated choice is refused with the model's message."""
+    set_stability(app)
+    app.selectbox(key="stab_storage").set_value("refrigerated")
+    app.run()
+    app.button(key="run_stability").click().run()
+    assert not app.exception
+    tab = app.tabs[TABS["stability"]]
+    assert any("not supported in v1" in e.value for e in tab.error)
+    assert not tab.dataframe
 
 
 def test_two_batch_stability_run_shows_q1a_warning(

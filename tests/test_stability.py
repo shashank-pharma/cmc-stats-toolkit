@@ -57,6 +57,7 @@ def make_input(
         "attribute": "Assay",
         "unit": "% label claim",
         "direction": "decrease",
+        "storage_condition": "room_temperature",
         "lower_limit": LIMIT,
         "significant_change_at_accelerated": False,
         "statistical_analysis_performed": True,
@@ -425,6 +426,18 @@ def test_every_result_notes_x_definition_limitation(b003: list[float]) -> None:
     assert "period covered by long-term data" in stab.X_DEFINITION_LIMITATION_NOTE
 
 
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_guideline_basis_limitation(b003: list[float]) -> None:
+    """URS-STAB-024: every result carries the known-limitation note that the rules follow
+    ICH Q1A(R2) and Q1E, not the draft consolidated ICH Q1."""
+    note = stab.GUIDELINE_BASIS_LIMITATION_NOTE
+    assert note in stab.estimate_shelf_life(with_b003(b003)).notes
+    assert note.startswith("Known limitation:")
+    assert "Step 2 draft" in note
+    assert "Step 4" in note
+    assert "FDA" in note
+
+
 def test_x_uses_last_time_point_not_list_order() -> None:
     """URS-STAB-008: X is the latest time in each batch even when entered unsorted."""
     t = [24.0, 0.0, 12.0]
@@ -553,26 +566,51 @@ def test_only_decreasing_attribute_supported(direction: str) -> None:
         make_input(direction=direction)
 
 
-@pytest.mark.parametrize(
-    ("significant_change", "analysis_performed"),
-    [(True, True), (False, False), (True, False)],
-)
-def test_only_statistical_analysis_branch_of_appendix_a(
-    significant_change: bool, analysis_performed: bool
-) -> None:
-    """URS-STAB-007: any branch other than no significant change + statistics is refused."""
+def test_only_statistical_analysis_branch_of_appendix_a() -> None:
+    """URS-STAB-007: statistical analysis not performed is refused."""
     with pytest.raises(ValidationError, match="Appendix A"):
+        make_input(statistical_analysis_performed=False)
+
+
+@pytest.mark.parametrize("analysis_performed", [True, False])
+def test_significant_change_at_accelerated_not_supported(analysis_performed: bool) -> None:
+    """URS-STAB-023: significant change at accelerated is refused as not supported in v1."""
+    with pytest.raises(
+        ValidationError, match=r"significant change at accelerated.*not supported in v1"
+    ):
         make_input(
-            significant_change_at_accelerated=significant_change,
+            significant_change_at_accelerated=True,
             statistical_analysis_performed=analysis_performed,
         )
 
 
+@pytest.mark.parametrize("condition", ["refrigerated", "freezer"])
+def test_only_room_temperature_storage_supported(condition: str) -> None:
+    """URS-STAB-022: refrigerated and freezer storage are refused as not supported in v1."""
+    with pytest.raises(ValidationError, match=rf"'{condition}'.*not supported in v1"):
+        make_input(storage_condition=condition)
+
+
+@pytest.mark.parametrize("value", ["Room temperature", "frozen", "", None])
+def test_storage_condition_must_be_a_listed_choice(value: Any) -> None:
+    """URS-STAB-022: anything other than the three listed storage conditions is rejected."""
+    with pytest.raises(ValidationError, match="storage_condition"):
+        make_input(storage_condition=value)
+
+
+def test_room_temperature_storage_accepted_and_recorded() -> None:
+    """URS-STAB-022: room temperature runs and the condition is kept in the result inputs."""
+    result = stab.estimate_shelf_life(make_input())
+    assert result.inputs.storage_condition == "room_temperature"
+
+
 @pytest.mark.parametrize(
-    "missing", ["significant_change_at_accelerated", "statistical_analysis_performed"]
+    "missing",
+    ["storage_condition", "significant_change_at_accelerated", "statistical_analysis_performed"],
 )
 def test_appendix_a_flags_have_no_default(missing: str) -> None:
-    """URS-STAB-007: the Appendix A conditions must be stated explicitly."""
+    """URS-STAB-007, URS-STAB-022, URS-STAB-023: the storage condition and the Appendix A
+    conditions must be stated explicitly."""
     fields = make_input().model_dump()
     del fields[missing]
     with pytest.raises(ValidationError, match=missing):

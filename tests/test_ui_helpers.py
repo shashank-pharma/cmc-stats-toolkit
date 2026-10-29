@@ -27,6 +27,7 @@ STAB_SETTINGS: dict[str, Any] = {
     "attribute": "Assay",
     "unit": "% label claim",
     "direction": "decrease",
+    "storage_condition": "room_temperature",
     "lower_limit": 95.0,
     "significant_change_at_accelerated": False,
     "statistical_analysis_performed": True,
@@ -327,6 +328,7 @@ def test_missing_settings_lists_every_unset_item() -> None:
         "unit",
         "direction",
         "lower_limit",
+        "storage_condition",
         "significant_change_at_accelerated",
         "statistical_analysis_performed",
     ]
@@ -454,11 +456,12 @@ def test_prominent_notes_skip_confirmed_stability_notes() -> None:
 STABILITY_LIMITATIONS = (
     stability.APPENDIX_A_BRANCH_LIMITATION_NOTE,
     stability.X_DEFINITION_LIMITATION_NOTE,
+    stability.GUIDELINE_BASIS_LIMITATION_NOTE,
 )
 
 
 def test_prominent_notes_include_known_limitations() -> None:
-    """URS-UI-011, URS-STAB-020, URS-STAB-021: known-limitation notes are promoted, in order."""
+    """URS-UI-011, URS-STAB-020, 021, 024: known-limitation notes are promoted, in order."""
     result = stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))
     assert ui.prominent_notes(result) == list(STABILITY_LIMITATIONS)
 
