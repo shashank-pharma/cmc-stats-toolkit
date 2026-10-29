@@ -454,7 +454,7 @@ def test_guideline_stamp_names_q1a_r2_and_q1e() -> None:
     ICH Q1E and the Step 4 date on each document."""
     meta = stab.estimate_shelf_life(with_b003(B003_SIMILAR), timestamp=FIXED_TIME).metadata
     assert meta.guideline_version == (
-        "ICH Q1A(R2) (Step 4, 2003) + ICH Q1E (Step 4, 6 February 2003)"
+        "ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)"
     )
 
 

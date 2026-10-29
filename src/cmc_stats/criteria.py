@@ -45,9 +45,9 @@ CV_EARLY_MAX_TIME_MIN: Final[float] = 15.0
 RAPID_DISSOLUTION_TIME_MIN: Final[float] = 15.0
 # FDA IR dissolution guidance (1997), section V.A: f1 from 0 to 15 is the companion check
 F1_SIMILAR_MAX: Final[float] = 15.0
-# FDA IR dissolution guidance (1997), subsection pending confirmation: f2 is "most suitable
-# for dissolution profile comparison when three to four or more dissolution time points are
-# available". Warn (not refuse) below 3 points after the 85% cut-off (URS-DISS-010)
+# FDA IR dissolution guidance (1997), section V.A, p. 9: f2 is "most suitable for dissolution
+# profile comparison when three to four or more dissolution time points are available"
+# (PC-DISS-05). Warn (not refuse) below 3 points after the 85% cut-off (URS-DISS-010)
 DISSOLUTION_MIN_TIME_POINTS: Final[int] = 3
 
 # Shah et al., Pharm Res 1998 - provisional, pending agency text: percentile bootstrap f2
@@ -79,10 +79,11 @@ BE_MIN_RESIDUAL_DF: Final[int] = 1
 # expectations with ICH as the harmonised base; EMA differences are recorded as notes only
 TARGET_AGENCY: Final[str] = "US FDA (ICH as the harmonised base)"
 
-# Stability stamp (URS-STAB-026): the Step 4 date shown on ICH Q1E is 6 February 2003 (checked
-# by the user, PC-STAB-01); the Q1A(R2) day and month are pending confirmation
+# Stability stamp (URS-STAB-026): the Step 4 date shown on both ICH Q1A(R2) ("Current Step 4
+# version dated 6 February 2003", PC-STAB-08) and ICH Q1E (PC-STAB-01) is 6 February 2003
+# (checked by the user)
 GUIDELINE_VERSIONS: Final[dict[str, str]] = {
-    "stability": "ICH Q1A(R2) (Step 4, 2003) + ICH Q1E (Step 4, 6 February 2003)",
+    "stability": "ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)",
     "dissolution": "FDA IR dissolution guidance (1997)",
     "bioequivalence": "ICH M13A (Step 4, 2024)",
 }

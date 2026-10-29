@@ -64,7 +64,7 @@ asking for a seed and resample count. The bootstrap method is provisional (Shah 
 Known limitations shown in the warning box on every dissolution result with f1/f2 (all three
 files): the 20% CV limit "at the earlier time points (e.g., 15 minutes)" is read as t <= 15 min;
 f2 = 50 exactly is treated as similar ("f2 values greater than 50 (50-100)" read as inclusive);
-f1/f2 are checked only against a hand calculation that base R reproduces, with a published
+f1/f2 are cross-checked against base R (`tests/golden/r/dissolution_gold.R`), with a published
 example (Shah et al. 1998) planned for v1.1. When bootstrap f2 decides
 (`dissolution_similar_high_cv.csv`), a fourth note says FDA 1997 does not describe bootstrap f2
 and that the multivariate (MSD) method it names in section V.B is not in v1.

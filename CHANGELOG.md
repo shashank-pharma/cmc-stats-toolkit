@@ -1,11 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.8.0 - 2026-10-29
 Behaviour changes: the stability guideline stamp changes from "ICH Q1E (Step 4, 2003)" to
-"ICH Q1A(R2) (Step 4, 2003) + ICH Q1E (Step 4, 6 February 2003)" (URS-STAB-026).
-`DissolutionResult` has a new field `warnings` (also in the `/dissolution` API response).
-No calculated result changes: f1, f2, bootstrap f2 and shelf-life logic are untouched, and
-no golden expected value was edited. Version not bumped in this commit.
+"ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)" (URS-STAB-026).
+`DissolutionResult` has a new field `warnings` (also in the `/dissolution` API response);
+minor bump under the pre-1.0 policy. No calculated result changes: f1, f2, bootstrap f2 and
+shelf-life logic are untouched, and no golden expected value was edited (GOLD-DISS-001
+regenerated from R with an empty diff).
 
 ### Changed
 - PC-DISS-02 confirmed: f1/f2, 12 units and the 85% rule cite FDA 1997 section V.A,
@@ -16,6 +17,16 @@ no golden expected value was edited. Version not bumped in this commit.
 - New URS-DISS-010: fewer than 3 time points after the 85% cut-off adds a warning ("three to
   four or more dissolution time points"; subsection pending confirmation, PC-DISS-05).
 - `ui_helpers.prominent_notes` now also reads dissolution warnings (URS-UI-011).
+- PC-STAB-08 confirmed: ICH Q1A(R2) cover page "Current Step 4 version dated 6 February
+  2003"; the stamp gives the full date (URS-STAB-026).
+- PC-DISS-05 confirmed: the "three to four or more dissolution time points" quote is FDA 1997
+  section V.A, p. 9 (URS-DISS-010). The warning no longer says "pending confirmation", so it
+  is shown in its own warning box rather than promoted under URS-UI-011.
+
+### Added
+- `tests/golden/r/dissolution_gold.R` reproduces GOLD-DISS-001 from base R, and
+  `tests/golden/r/merge_dissolution_gold.py` writes R's values into the JSON (empty diff on
+  2026-10-29).
 
 ### Known limitations (decided by Shashank, 2026-10-29)
 - PC-STAB-07: stability golden cases are base R output on dummy data; a published-example
@@ -25,16 +36,15 @@ no golden expected value was edited. Version not bumped in this commit.
   and provisional; the MSD method is not in v1 (URS-DISS-013).
 - PC-DISS-03: the 20% CV limit "at the earlier time points (e.g., 15 minutes)" is read as
   t <= 15 min (URS-DISS-011).
-- PC-DISS-04: GOLD-DISS-001 is a hand calculation (reproduced in base R, not committed as a
-  script) and there is no bootstrap golden case; a published example (Shah et al. 1998) is
-  planned for v1.1 (URS-DISS-014).
+- PC-DISS-04: GOLD-DISS-001 is cross-checked against base R
+  (`tests/golden/r/dissolution_gold.R`) and there is no bootstrap golden case; a published
+  example (Shah et al. 1998) is planned for v1.1 (URS-DISS-014).
 - PC-DISS-06: f2 = 50 exactly (and a bootstrap lower bound of 50) is treated as similar,
   reading "f2 values greater than 50 (50-100)" as inclusive (URS-DISS-012).
 Every affected result carries these as notes, shown in the warning box (URS-UI-011).
 
 ### Still open for 1.0.0
-PC-STAB-08 (Q1A(R2) Step 4 day and month), PC-DISS-05 (subsection of the three-points
-quote), PC-BE-01..04.
+PC-BE-01..04.
 
 ## 0.7.0 - 2026-10-29
 Behaviour change: `StabilityInput` has a new required field `storage_condition`

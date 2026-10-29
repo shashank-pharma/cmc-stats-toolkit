@@ -11,3 +11,7 @@ Stability R reference: `tests/golden/r/stability_gold.R` computes GOLD-STAB-001.
 objects into the JSON files (inputs and R version checked; curated `source` and `crosscheck`
 text kept). Review `git diff tests/golden/data` afterwards; an empty diff means the committed
 values are exactly R's output.
+
+Dissolution R reference: `tests/golden/r/dissolution_gold.R` reproduces GOLD-DISS-001 from
+base R, and `uv run python tests/golden/r/merge_dissolution_gold.py` writes R's `expected`
+values (3 decimals, the committed precision) into the JSON file the same way.

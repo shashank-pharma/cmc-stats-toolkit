@@ -49,10 +49,9 @@ F2_BOUNDARY_LIMITATION_NOTE = (
     "(or a bootstrap lower bound of exactly 50) is treated as similar."
 )
 VALIDATION_LIMITATION_NOTE = (
-    "Known limitation: f1 and f2 are checked against one hand-calculated example on dummy data "
-    "(GOLD-DISS-001, which base R reproduces) and bootstrap f2 against no independent "
-    "implementation; no published worked example has been checked. A published example "
-    "(Shah et al. 1998) is planned for v1.1."
+    "Known limitation: f1 and f2 are cross-checked against base R on one dummy-data example "
+    "(GOLD-DISS-001, tests/golden/r/dissolution_gold.R); bootstrap f2 is checked against no "
+    "independent implementation. A published example (Shah et al. 1998) is planned for v1.1."
 )
 
 
@@ -320,7 +319,7 @@ def compare_profiles(
             f"Only {len(used)} time point(s) used after the "
             f"{criteria.DISSOLUTION_PLATEAU_PCT}% cut-off: FDA IR dissolution guidance (1997) "
             'says f2 is "most suitable for dissolution profile comparison when three to four '
-            'or more dissolution time points are available" (subsection pending confirmation).'
+            'or more dissolution time points are available" (section V.A, p. 9).'
         )
     limit = criteria.F2_SIMILAR_MIN
 

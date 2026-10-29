@@ -71,7 +71,7 @@ refrigerated, freezer and significant change at accelerated (URS-STAB-022, 023).
   is read as t <= 15 min (known limitation, PC-DISS-03, URS-DISS-011). "f2 values greater
   than 50 (50-100)" is read as inclusive: f2 = 50 is similar (known limitation,
   URS-DISS-012). Warn when fewer than 3 points remain after the 85% cut-off ("three to four
-  or more dissolution time points"; subsection pending confirmation, URS-DISS-010).
+  or more dissolution time points"; FDA 1997 section V.A, p. 9, PC-DISS-05, URS-DISS-010).
 
 ## 3. Bioequivalence, 2x2 crossover (ICH M13A, 2024; FDA BE statistics guidance)
 

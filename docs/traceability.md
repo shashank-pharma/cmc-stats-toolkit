@@ -3,7 +3,7 @@
 Updated by the `/validation-docs` skill. Every requirement needs at least one test.
 
 Test IDs: `GOLD-*` are golden cases in `tests/golden/data/`; `test_<module>::<name>` are tests in
-`tests/`. Last /verify for every row below: **PASS 2026-10-29, after v0.7.0 (unreleased)** (ruff
+`tests/`. Last /verify for every row below: **PASS 2026-10-29, v0.8.0** (ruff
 format, ruff check, mypy strict, pytest 391 passed, coverage 99.24% measured on `src/cmc_stats`).
 
 Sample-data pack (URS-GEN-004): `sample_data/` holds 8 dummy CSVs in the UI template format.
@@ -28,13 +28,12 @@ Open confirmations (provisional until the user checks the guideline text):
   cases are base R output, published example planned for v1.1 (URS-STAB-025); CV "earlier
   time points (e.g., 15 minutes)" read as t <= 15 min (URS-DISS-011); f2 = 50 treated as
   similar (URS-DISS-012); bootstrap f2 not in FDA 1997, MSD method not in v1 (URS-DISS-013);
-  f1/f2 checked only against a hand calculation, published example planned for v1.1
-  (URS-DISS-014).
+  f1/f2 cross-checked against base R, published example planned for v1.1 (URS-DISS-014).
 - Target agency (confirmed 2026-10-29, not open): US FDA with ICH as the harmonised base
   (URS-GEN-005).
-- ICH Q1A(R2) Step 4 day and month for the stability stamp (URS-STAB-026, PC-STAB-08).
-- Subsection of the "three to four or more dissolution time points" quote (URS-DISS-010,
-  PC-DISS-05).
+- Confirmed 2026-10-29 (not open): ICH Q1A(R2) Step 4 date 6 February 2003 in the stability
+  stamp (URS-STAB-026, PC-STAB-08); "three to four or more dissolution time points" is FDA
+  1997 section V.A, p. 9 (URS-DISS-010, PC-DISS-05).
 - BE rounding rule (round half up, BE_ROUNDING_MODE) for the target agency: URS-BE-016.
 - Whether AUC0-inf is decision-making (BE_AUC0INF_DECISION_MAKING; FDA vs EMA): URS-BE-014.
 - ICH M13A and FDA BE statistics guidance section numbers for the BE docstrings.
@@ -73,7 +72,7 @@ Open confirmations (provisional until the user checks the guideline text):
 | URS-STAB-025 | core.stability.VALIDATION_LIMITATION_NOTE, estimate_shelf_life (notes) | test_stability::test_every_result_notes_validation_limitation (3 cases); test_ui_helpers::test_prominent_notes_include_known_limitations; test_ui_app::test_stability_run_shows_known_limitations_in_warning_box | PASS 2026-10-29 |
 | URS-STAB-026 | criteria.GUIDELINE_VERSIONS["stability"]; models.make_metadata | test_stability::test_guideline_stamp_names_q1a_r2_and_q1e, test_result_carries_disclaimer_and_traceability_stamp | PASS 2026-10-29 |
 | URS-DISS-001 | core.dissolution.truncate_at_85, compare_profiles | test_dissolution::test_truncation_keeps_points_through_first_where_both_reach_85, test_truncation_waits_for_both_products, test_truncation_at_first_point, test_truncation_keeps_all_when_85_never_reached, test_compare_profiles_mean_f2_path | PASS 2026-10-29 |
-| URS-DISS-002 | core.dissolution.f1, f2 | GOLD-DISS-001 (hand calculation, reproduced in base R 2026-10-29; published example planned for v1.1, URS-DISS-014); test_dissolution::test_dissolution_functions_cite_section_v_a; test_dissolution::test_identical_profiles_give_f2_100_and_f1_0, test_uniform_10_point_difference_matches_analytic_f2, test_f1_f2_reject_unequal_lengths, test_f1_rejects_zero_reference_sum, test_f1_f2_reject_empty_profiles, test_f2_is_symmetric_and_at_most_100, test_f2_decreases_as_uniform_offset_grows, test_f1_is_non_negative, test_compare_profiles_mean_f2_path | PASS 2026-10-29 |
+| URS-DISS-002 | core.dissolution.f1, f2 | GOLD-DISS-001 (cross-checked against base R, tests/golden/r/dissolution_gold.R; published example planned for v1.1, URS-DISS-014); test_dissolution::test_dissolution_functions_cite_section_v_a; test_dissolution::test_identical_profiles_give_f2_100_and_f1_0, test_uniform_10_point_difference_matches_analytic_f2, test_f1_f2_reject_unequal_lengths, test_f1_rejects_zero_reference_sum, test_f1_f2_reject_empty_profiles, test_f2_is_symmetric_and_at_most_100, test_f2_decreases_as_uniform_offset_grows, test_f1_is_non_negative, test_compare_profiles_mean_f2_path | PASS 2026-10-29 |
 | URS-DISS-003 | criteria.CV_EARLY_MAX_TIME_MIN; core.dissolution.unit_cv_pct, check_cv, compare_profiles | test_criteria::test_dissolution_time_constants_match_15_minutes; test_dissolution::test_unit_cv_uses_sample_sd, test_unit_cv_rejects_zero_mean, test_cv_limit_is_20_up_to_15_minutes_then_10, test_cv_just_over_limit_fails_and_just_under_passes, test_compare_profiles_mean_f2_path, test_compare_profiles_requires_bootstrap_settings_when_cv_fails | PASS 2026-10-29 |
 | URS-DISS-004 | models.DissolutionProfile._shape | test_dissolution::test_eleven_reference_units_rejected, test_eleven_test_units_rejected, test_twelve_units_each_accepted | PASS 2026-10-29 |
 | URS-DISS-005 | models.DissolutionInput._same_time_points | test_dissolution::test_time_point_count_mismatch_rejected, test_time_point_value_mismatch_rejected, test_identical_time_points_accepted | PASS 2026-10-29 |
