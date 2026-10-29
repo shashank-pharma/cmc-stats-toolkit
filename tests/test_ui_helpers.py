@@ -441,13 +441,26 @@ def test_template_run_records_template_name() -> None:
 def test_prominent_notes_skip_confirmed_stability_notes() -> None:
     """URS-UI-011: the separate-slopes note (ICH Q1E Appendix B.2.2.1, PC-STAB-01) and the
     Q1A(R2) fewer-than-3-batches warning (2.1.3 and 2.2.3, PC-STAB-02) are confirmed, so neither
-    is promoted; the warning is still shown in its own box by ui.show_result."""
+    is promoted; the warning is still shown in its own box by ui.show_result. Only the
+    known-limitation notes are promoted."""
     data = stab_golden("GOLD-STAB-003")
     two_batches = data.model_copy(update={"batches": data.batches[1:]})
     result = stability.estimate_shelf_life(two_batches)
     assert stability.SEPARATE_MODEL_NOTE in result.notes
     assert any("ICH Q1A(R2)" in w for w in result.warnings)
-    assert ui.prominent_notes(result) == []
+    assert ui.prominent_notes(result) == list(STABILITY_LIMITATIONS)
+
+
+STABILITY_LIMITATIONS = (
+    stability.APPENDIX_A_BRANCH_LIMITATION_NOTE,
+    stability.X_DEFINITION_LIMITATION_NOTE,
+)
+
+
+def test_prominent_notes_include_known_limitations() -> None:
+    """URS-UI-011, URS-STAB-020, URS-STAB-021: known-limitation notes are promoted, in order."""
+    result = stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))
+    assert ui.prominent_notes(result) == list(STABILITY_LIMITATIONS)
 
 
 def test_prominent_notes_include_bootstrap_method_note() -> None:
@@ -483,8 +496,12 @@ def test_prominent_notes_be_rounding_placeholder() -> None:
 
 
 def test_ordinary_notes_not_promoted() -> None:
-    """URS-UI-011: a pooled, 3-batch stability result has no provisional notes."""
-    assert ui.prominent_notes(stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))) == []
+    """URS-UI-011: in a pooled, 3-batch stability result only the known-limitation notes are
+    promoted; the model note and the other ordinary notes are not."""
+    result = stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))
+    ordinary = [n for n in result.notes if n not in STABILITY_LIMITATIONS]
+    assert ordinary
+    assert not set(ordinary) & set(ui.prominent_notes(result))
 
 
 # --- URS-UI-012: tables keep full precision -----------------------------------------------

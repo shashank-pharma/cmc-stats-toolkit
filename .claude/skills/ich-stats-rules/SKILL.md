@@ -25,7 +25,7 @@ supply the guideline text. Never fill a gap from memory. Put every numeric const
      reaches the limit first governs. ICH Q1E (2003) Appendix B.2.2.1 (also B.2.1), p. 10;
      confirmed against the Q1E text 2026-10-29. A batch's own error (df = n - 2) is not used.
 3. Shelf-life is the earliest time the 95% confidence bound for the mean line meets the
-   acceptance criterion:
+   acceptance criterion (ICH Q1E 2.6, p. 7, confirmed 2026-10-29):
    - One-sided lower bound for an attribute expected to decrease (assay).
    - One-sided upper bound for an attribute expected to increase (degradants).
    - Two-sided 95% interval when the attribute may move either way.
@@ -33,7 +33,11 @@ supply the guideline text. Never fill a gap from memory. Put every numeric const
    Common case (no significant change at accelerated, statistical analysis performed):
    up to 2x the long-term period, but not more than 12 months beyond it. Without statistical
    analysis: up to 1.5x, but not more than 6 months beyond. Implement the other branches only
-   after the user provides the decision-tree text.
+   after the user provides the decision-tree text. Q1E 2.4.1.2, p. 4, and Appendix A, p. 8
+   (confirmed 2026-10-29) add "or if refrigerated, Y = up to 1.5X, but not exceeding X + 6
+   months"; v1 supports room temperature only (known limitation, Shashank 2026-10-29,
+   URS-STAB-020). X, "period covered by long-term data", is taken as the shortest batch
+   coverage (known limitation, URS-STAB-021).
 5. Report the model chosen, both p-values, degrees of freedom, the t value used, the
    crossing time and the proposed shelf-life (rounded down to whole months).
 

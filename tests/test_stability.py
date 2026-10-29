@@ -405,6 +405,26 @@ def test_x_is_shortest_batch_coverage() -> None:
     assert ext.cap_months == 24.0
 
 
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_appendix_a_branch_limitation(b003: list[float]) -> None:
+    """URS-STAB-020: every result (pooled, common slope, separate) carries the known-limitation
+    note that only the room-temperature, statistical-analysis branch of the cap is supported."""
+    notes = stab.estimate_shelf_life(with_b003(b003)).notes
+    assert stab.APPENDIX_A_BRANCH_LIMITATION_NOTE in notes
+    assert stab.APPENDIX_A_BRANCH_LIMITATION_NOTE.startswith("Known limitation:")
+    assert "refrigerated" in stab.APPENDIX_A_BRANCH_LIMITATION_NOTE
+
+
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_x_definition_limitation(b003: list[float]) -> None:
+    """URS-STAB-021: every result carries the known-limitation note that X is the shortest
+    batch coverage."""
+    notes = stab.estimate_shelf_life(with_b003(b003)).notes
+    assert stab.X_DEFINITION_LIMITATION_NOTE in notes
+    assert stab.X_DEFINITION_LIMITATION_NOTE.startswith("Known limitation:")
+    assert "period covered by long-term data" in stab.X_DEFINITION_LIMITATION_NOTE
+
+
 def test_x_uses_last_time_point_not_list_order() -> None:
     """URS-STAB-008: X is the latest time in each batch even when entered unsorted."""
     t = [24.0, 0.0, 12.0]

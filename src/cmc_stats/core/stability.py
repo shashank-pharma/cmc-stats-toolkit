@@ -3,7 +3,9 @@
 Rules follow ICH Q1E (2003), Evaluation for Stability Data, Appendices A and B, as summarised
 in the ich-stats-rules skill. v1 covers an attribute expected to decrease
 (one-sided 95% lower bound against a lower limit) and the Appendix A branch "no significant
-change at accelerated, statistical analysis performed". All values are kept at full precision;
+change at accelerated, statistical analysis performed" at room temperature (Q1E 2.4.1.2 and
+Appendix A; refrigerated and other branches are known limitations, URS-STAB-020 and 021). All
+values are kept at full precision;
 only the proposed shelf-life is rounded down to whole months.
 
 Design matrices (k batches, N results):
@@ -39,6 +41,18 @@ from cmc_stats.models import (
     make_metadata,
 )
 
+APPENDIX_A_BRANCH_LIMITATION_NOTE = (
+    "Known limitation: the extrapolation cap uses only the branch room temperature, no "
+    "significant change at accelerated, statistical analysis performed (ICH Q1E 2.4.1.2 and "
+    "Appendix A: Y up to 2X, but not exceeding X + 12 months). The refrigerated branch (up to "
+    "1.5X, but not exceeding X + 6 months, Q1E 2.5.1.1) and the other Appendix A branches are "
+    "not supported in v1; do not use this cap for a refrigerated product."
+)
+X_DEFINITION_LIMITATION_NOTE = (
+    "Known limitation: X, the period covered by long-term data (ICH Q1E Appendix A), is taken "
+    "as the shortest of the batches' last time points. This is a conservative reading; Q1E "
+    "does not define X further."
+)
 SEPARATE_MODEL_NOTE = (
     "Slopes differ: each batch's bound uses its own intercept and slope with the pooled mean "
     "square error of the full model (df = N - 2k), ICH Q1E Appendix B.2.2.1; the earliest "
@@ -239,7 +253,8 @@ def lower_bound(
 ) -> NDArray[np.float64]:
     """One-sided 95% lower confidence bound of the mean line at ``times`` (URS-STAB-003).
 
-    ICH Q1E (2003), Appendix B.1: mean - t(0.95, df) * SE(mean). Pooled and common-slope
+    ICH Q1E (2003), 2.6, p. 7 (lower one-sided 95 percent confidence limit for an attribute
+    known to decrease) and Appendix B.1: mean - t(0.95, df) * SE(mean). Pooled and common-slope
     lines use that model's residual error and df. Separate lines use each batch's intercept
     and slope with the pooled mean square error of the full model, df N - 2k (Appendix
     B.2.2.1). ``label`` is ``None`` for the pooled line.
@@ -297,9 +312,12 @@ def crossing_time(data: StabilityInput, model: StabilityModel, label: str | None
 def extrapolation_cap(data: StabilityInput) -> ExtrapolationCap:
     """Appendix A cap: min(2X, X + 12) months (URS-STAB-004, URS-STAB-007, URS-STAB-008).
 
-    ICH Q1E (2003), Appendix A, branch "no significant change at accelerated, statistical
-    analysis performed" (the only branch ``StabilityInput`` accepts). X is the shortest of
-    the batches' last time points (user decision 2026-10-27).
+    ICH Q1E (2003), 2.4.1.2, p. 4, and Appendix A, p. 8: "Y = up to 2X, but not exceeding
+    X + 12 months", branch "no significant change at accelerated, statistical analysis
+    performed" (the only branch ``StabilityInput`` accepts), room temperature only; the
+    refrigerated branch is not supported (known limitation, URS-STAB-020). X ("period covered
+    by long-term data") is the shortest of the batches' last time points (user decision
+    2026-10-27; known limitation, URS-STAB-021).
     """
     x = min(max(b.times_months) for b in data.batches)
     factor = criteria.EXTRAPOLATION_FACTOR_STATS
@@ -376,7 +394,11 @@ def estimate_shelf_life(
         "common_slope": "common slope, separate intercepts",
         "separate": "separate lines per batch",
     }[model]
-    notes = [f"Model: {model_text} (poolability tested at {pool.alpha})."]
+    notes = [
+        f"Model: {model_text} (poolability tested at {pool.alpha}).",
+        APPENDIX_A_BRANCH_LIMITATION_NOTE,
+        X_DEFINITION_LIMITATION_NOTE,
+    ]
     if model == "separate":
         notes.append(SEPARATE_MODEL_NOTE)
     if governing is not None and len(tied) > 1:

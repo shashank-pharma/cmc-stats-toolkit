@@ -10,12 +10,12 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-GEN-004 | A sample-data pack in sample_data/ uses the exact UI template CSV format, is regenerated reproducibly from committed seeded scripts, and lists each file's settings and expected result; a test runs every file through the UI parsing and core path and checks those expectations. | Project policy (dummy data only); user requirement 2026-10-28 |
 | URS-STAB-001 | Fit a least-squares line of attribute against time for each batch. | ICH Q1E |
 | URS-STAB-002 | Test equality of slopes, then intercepts, at significance 0.25 and choose the model. | ICH Q1E |
-| URS-STAB-003 | Report the time where the one-sided 95% bound of the mean meets the limit. When slopes differ, each batch's bound uses its own intercept and slope with the pooled mean square error of the full model (individual intercepts and slopes, df = N - 2k). | ICH Q1E; separate slopes: ICH Q1E (2003) Appendix B.2.2.1 and B.2.1, p. 10 |
-| URS-STAB-004 | Cap the proposed shelf-life by the Appendix A extrapolation rule. | ICH Q1E Appendix A |
+| URS-STAB-003 | Report the time where the one-sided 95% bound of the mean meets the limit. When slopes differ, each batch's bound uses its own intercept and slope with the pooled mean square error of the full model (individual intercepts and slopes, df = N - 2k). | ICH Q1E (2003) 2.6, p. 7; separate slopes: ICH Q1E (2003) Appendix B.2.2.1 and B.2.1, p. 10 |
+| URS-STAB-004 | Cap the proposed shelf-life by the Appendix A extrapolation rule. | ICH Q1E (2003) 2.4.1.2, p. 4, and Appendix A, p. 8 |
 | URS-STAB-005 | Report the model chosen, slope and intercept F, df and p (intercept not tested when slopes differ), residual df and t value of the model used for each bound (full model, df = N - 2k, when slopes differ), crossing time and the proposed shelf-life rounded down to whole months. | ICH Q1E; separate slopes: ICH Q1E (2003) Appendix B.2.2.1 and B.2.1, p. 10 |
 | URS-STAB-006 | Accept only an attribute expected to decrease, with a lower limit; refuse "increase" and "either" as not supported in v1. | Project scope (v1) |
-| URS-STAB-007 | Apply the extrapolation cap only when there is no significant change at accelerated and statistical analysis was performed; refuse every other combination. | ICH Q1E Appendix A |
-| URS-STAB-008 | Take X, the period covered by long-term data, as the shortest of the batches' last time points; report X and the cap min(2X, X + 12). | ICH Q1E Appendix A; user decision 2026-10-27 |
+| URS-STAB-007 | Apply the extrapolation cap only when there is no significant change at accelerated and statistical analysis was performed; refuse every other combination. | ICH Q1E (2003) 2.4.1.2, p. 4, and Appendix A, p. 8 |
+| URS-STAB-008 | Take X, the period covered by long-term data, as the shortest of the batches' last time points; report X and the cap min(2X, X + 12). | ICH Q1E (2003) Appendix A, p. 8 ("X = Period covered by long-term data"); user decision 2026-10-27; known limitation (URS-STAB-021) |
 | URS-STAB-009 | Reject input with fewer than 2 batches. | Project policy (minimum for the poolability tests) |
 | URS-STAB-010 | Reject a batch with fewer than 3 observations, naming the batch. | Project policy (at least 1 residual df per batch) |
 | URS-STAB-011 | Reject a batch with fewer than 2 distinct time points, naming the batch. | Project policy (slope must be estimable) |
@@ -27,6 +27,8 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-STAB-017 | With fewer than 3 batches, add a warning (not an error) to the result; the calculation still runs. | ICH Q1A(R2) (2003), Selection of Batches: 2.1.3 (drug substance), p. 2, and 2.2.3 (drug product), p. 6 |
 | URS-STAB-018 | Reject negative values (naming the batch) and a negative lower limit; values above 100% are kept as entered. | Project policy (reject bad input loudly) |
 | URS-STAB-019 | A poolability test pools only when p > 0.25; at p <= 0.25 equality is rejected (slopes, then intercepts). | ICH Q1A(R2) 2.1.9 and 2.2.9 ("more than 0.25"), pp. 5 and 13; ICH Q1 Step 2 draft (2025) Annex 2 A2-1.2-1, p. A2-6; user decision 2026-10-29 (Shashank) |
+| URS-STAB-020 | Every stability result states, as a known-limitation note, that the extrapolation cap covers only the room-temperature, no-significant-change, statistical-analysis-performed branch; the refrigerated branch (1.5X, not exceeding X + 6) and other Appendix A branches are not supported. | ICH Q1E (2003) 2.4.1.2, p. 4, 2.5.1.1, p. 6, and Appendix A, p. 8; known limitation, decided by Shashank 2026-10-29 (PC-STAB-04) |
+| URS-STAB-021 | Every stability result states, as a known-limitation note, that X is taken as the shortest batch coverage (a conservative reading). | ICH Q1E (2003) Appendix A, p. 8 ("X = Period covered by long-term data"); known limitation, decided by Shashank 2026-10-29 (PC-STAB-05) |
 | URS-DISS-001 | Use only time points up to the first where both products reach 85%. | FDA IR dissolution guidance (1997) |
 | URS-DISS-002 | Calculate f1 and f2 from mean profiles. | FDA IR dissolution guidance (1997) |
 | URS-DISS-003 | Check CV limits (20% early, 10% later) and switch to bootstrap f2 when they fail. | FDA IR dissolution guidance (1997) |
@@ -70,7 +72,7 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-UI-008 | Settings not in the CSV must be chosen explicitly before Run is enabled (stability attribute, unit, direction, limit and Appendix A conditions; BE design and limits); dissolution bootstrap seed and resample count are given together or not at all. No defaults. | Project policy (no invented seed or settings) |
 | URS-UI-009 | Show parsing, validation and core errors verbatim, with no result displayed. | Project policy |
 | URS-UI-010 | Show the disclaimer on every tab. | URS-GEN-001 |
-| URS-UI-011 | Show every note, warning or method note containing "pending confirmation" or "provisional" in a warning box above the results. | Project policy |
+| URS-UI-011 | Show every note, warning or method note containing "pending confirmation", "provisional" or "known limitation" in a warning box above the results. | Project policy; docs/RELEASE-1.0.0.md, Definition of 1.0.0 (known limitations) |
 | URS-UI-012 | Results tables keep full precision; values are rounded only by display formatting. | CLAUDE.md (round only for display) |
 | URS-UI-013 | Charts are Plotly line or bar only: dissolution mean profiles; stability batch data, fitted mean line, 95% lower bound and limit; BE point estimate bars with 90% CI error bars and 80/125% reference lines. | Project policy |
 | URS-UI-014 | When the template's dummy data are used instead of an upload, show the warning "Result from template dummy data, not your data" with the result, and record the template file name as the source file. | ALCOA+ (attributable); user requirement 2026-10-28 |

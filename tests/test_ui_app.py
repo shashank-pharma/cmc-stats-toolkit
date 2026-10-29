@@ -11,6 +11,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from cmc_stats import ui_helpers
+from cmc_stats.core import stability
 from cmc_stats.models import DISCLAIMER
 
 APP = str(Path(__file__).parents[1] / "src" / "cmc_stats" / "ui.py")
@@ -83,6 +84,18 @@ def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
     assert any("pending confirmation" in w.value for w in tab.warning)
     assert any("Bioequivalent" in m.value for m in tab.markdown)
     assert tab.get("plotly_chart")
+
+
+def test_stability_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
+    """URS-UI-011, URS-STAB-020, URS-STAB-021: both known-limitation notes appear in warning
+    boxes on a stability result."""
+    set_stability(app)
+    app.run()
+    app.button(key="run_stability").click().run()
+    assert not app.exception
+    shown = [w.value for w in app.tabs[TABS["stability"]].warning]
+    assert stability.APPENDIX_A_BRANCH_LIMITATION_NOTE in shown
+    assert stability.X_DEFINITION_LIMITATION_NOTE in shown
 
 
 def test_two_batch_stability_run_shows_q1a_warning(

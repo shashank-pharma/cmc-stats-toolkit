@@ -10,12 +10,28 @@ No calculated result changes.
   (URS-UI-011; test renamed to test_prominent_notes_skip_confirmed_stability_notes).
   Register row records the confirmed 2.1.3 and 2.2.3 sentences, and 2.1.9 / 2.2.9
   ("rejection of more than 0.25") as support for URS-STAB-019.
+- PC-STAB-03 confirmed: `criteria.POOLABILITY_ALPHA` comment now cites ICH Q1E Appendix
+  B.2.2.1, p. 10 (was "section 2.3 and Appendix B").
+- PC-STAB-04 confirmed: `SHELF_LIFE_CONFIDENCE` and the extrapolation constants, the
+  `lower_bound` and `extrapolation_cap` docstrings and URS-STAB-003, 004, 007 and 008 cite
+  ICH Q1E 2.6 (p. 7), 2.4.1.2 (p. 4) and Appendix A (p. 8).
+- URS-UI-011: notes containing "known limitation" are also shown in the warning box.
+
+### Known limitations (decided by Shashank, 2026-10-29)
+- Appendix A cap: room temperature, no significant change at accelerated, statistical
+  analysis performed only. The refrigerated branch (1.5X, not exceeding X + 6 months, Q1E
+  2.5.1.1) and other branches are not supported, and there is no storage-condition input
+  to refuse a refrigerated product (PC-STAB-04, URS-STAB-020).
+- X is taken as the shortest batch coverage; Q1E defines X only as "period covered by
+  long-term data" (PC-STAB-05, URS-STAB-021).
+Every stability result now carries both as notes, shown in the warning box.
 
 ### Added
 - test_ui_app::test_two_batch_stability_run_shows_q1a_warning (URS-UI-011, URS-STAB-017):
   the fewer-than-3-batches warning reaches the screen.
-- PC-STAB-03 confirmed: `criteria.POOLABILITY_ALPHA` comment now cites ICH Q1E Appendix
-  B.2.2.1, p. 10 (was "section 2.3 and Appendix B").
+- URS-STAB-020 and URS-STAB-021 with tests; test_ui_helpers::
+  test_prominent_notes_include_known_limitations and test_ui_app::
+  test_stability_run_shows_known_limitations_in_warning_box.
 
 ## 0.6.0 - 2026-10-29
 Calculated result changed: when batch slopes differ (separate-slopes model), each batch's

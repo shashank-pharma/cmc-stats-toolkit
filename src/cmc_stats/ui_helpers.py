@@ -42,7 +42,7 @@ Area = Literal["dissolution", "stability", "be"]
 AnyResult = DissolutionResult | StabilityResult | BeResult
 
 TEMPLATE_WARNING = "Result from template dummy data, not your data"
-_PROMINENT = re.compile(r"pending confirmation|provisional", re.IGNORECASE)
+_PROMINENT = re.compile(r"pending confirmation|provisional|known limitation", re.IGNORECASE)
 _NUMBER = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?")
 _INTEGER = re.compile(r"[+-]?\d+")
 
@@ -404,7 +404,8 @@ def run_analysis(
 
 
 def prominent_notes(result: AnyResult) -> list[str]:
-    """Notes, warnings and method notes that are provisional or pending confirmation, in
+    """Notes, warnings and method notes that are provisional, pending confirmation or a known
+    limitation, in
     order and without repeats, for display in warning boxes (URS-UI-011)."""
     texts = list(result.notes)
     if isinstance(result, StabilityResult | BeResult):

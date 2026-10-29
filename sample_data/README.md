@@ -36,7 +36,10 @@ Expected values are independent R output (the same data as GOLD-STAB-001..003).
 | `stability_b003_start.csv` | lower start, same slope | common slope | B003 | 29.82 | 29 months |
 | `stability_b003_faster.csv` | faster decline | separate | B003 | 24.33 | 24 months |
 
-All three are capped at 36 months (Appendix A, X = 24). The separate-slopes result uses each
+All three are capped at 36 months (Appendix A, X = 24). Two known limitations appear in the
+warning box on every stability result: only the room-temperature, statistical-analysis branch
+of the Appendix A cap is supported (not the refrigerated 1.5X / X + 6 branch), and X is taken
+as the shortest batch coverage. The separate-slopes result uses each
 batch's own intercept and slope with the pooled mean square error of the full model
 (df = N - 2k), ICH Q1E Appendix B.2.2.1. Up to 0.5.0 it used each batch's own error (24.62).
 

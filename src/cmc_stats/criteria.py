@@ -8,9 +8,13 @@ from typing import Final
 
 # ICH Q1E (2003), Appendix B.2.2.1, p. 10: batch poolability significance level (PC-STAB-03)
 POOLABILITY_ALPHA: Final[float] = 0.25
-# ICH Q1E (2003): confidence level for the bound on the mean regression line
+# ICH Q1E (2003), 2.6, p. 7: "the lower one-sided 95 percent confidence limit" for an attribute
+# known to decrease (PC-STAB-04)
 SHELF_LIFE_CONFIDENCE: Final[float] = 0.95
-# ICH Q1E (2003), Appendix A: extrapolation limits when statistical analysis is performed
+# ICH Q1E (2003), 2.4.1.2, p. 4, and Appendix A, p. 8: "Y = up to 2X, but not exceeding X + 12
+# months" (no significant change at accelerated, statistical analysis performed; PC-STAB-04).
+# Room temperature only: the refrigerated 1.5X / X + 6 branch (2.5.1.1, p. 6) is a known
+# limitation (URS-STAB-020).
 EXTRAPOLATION_FACTOR_STATS: Final[float] = 2.0
 EXTRAPOLATION_MAX_EXTRA_MONTHS_STATS: Final[int] = 12
 # ICH Q1A(R2) (2003), Selection of Batches: 2.1.3 (drug substance), p. 2, and 2.2.3 (drug
