@@ -11,3 +11,6 @@ dist/
 .env.*
 data/confidential/
 .claude/settings.local.json
+
+# Local copies of guideline PDFs used to close docs/RELEASE-1.0.0.md items (not committed)
+references/
