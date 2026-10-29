@@ -58,6 +58,11 @@ GUIDELINE_BASIS_LIMITATION_NOTE = (
     "consolidated ICH Q1 is a Step 2 draft (11 April 2025), not final, and is not applied; "
     "re-check these rules when ICH Q1 reaches Step 4 or is adopted by FDA."
 )
+VALIDATION_LIMITATION_NOTE = (
+    "Known limitation: the shelf-life calculation is checked against independent base R "
+    "output (lm, anova) on dummy data (GOLD-STAB-001..003); no published worked example with "
+    "batch data has been checked. A published-example cross-check is planned for v1.1."
+)
 SEPARATE_MODEL_NOTE = (
     "Slopes differ: each batch's bound uses its own intercept and slope with the pooled mean "
     "square error of the full model (df = N - 2k), ICH Q1E Appendix B.2.2.1; the earliest "
@@ -356,7 +361,7 @@ def estimate_shelf_life(
     timestamp: datetime | None = None,
     source_files: Sequence[SourceFile] = (),
 ) -> StabilityResult:
-    """Full ICH Q1E shelf-life evaluation (URS-STAB-001 to 018, URS-GEN-001 to 003).
+    """Full ICH Q1E shelf-life evaluation (URS-STAB-001 to 026, URS-GEN-001 to 003).
 
     ICH Q1E (2003), Appendices A and B. Steps: per-batch fits; poolability
     at 0.25 (slopes, then intercepts); bound of each line of the chosen model; earliest
@@ -404,6 +409,7 @@ def estimate_shelf_life(
         APPENDIX_A_BRANCH_LIMITATION_NOTE,
         X_DEFINITION_LIMITATION_NOTE,
         GUIDELINE_BASIS_LIMITATION_NOTE,
+        VALIDATION_LIMITATION_NOTE,
     ]
     if model == "separate":
         notes.append(SEPARATE_MODEL_NOTE)

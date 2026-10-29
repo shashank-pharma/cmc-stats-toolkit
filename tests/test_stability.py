@@ -438,6 +438,26 @@ def test_every_result_notes_guideline_basis_limitation(b003: list[float]) -> Non
     assert "FDA" in note
 
 
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_validation_limitation(b003: list[float]) -> None:
+    """URS-STAB-025: every result carries the known-limitation note that the golden cases are
+    base R output on dummy data, with a published example planned for v1.1 (PC-STAB-07)."""
+    note = stab.VALIDATION_LIMITATION_NOTE
+    assert note in stab.estimate_shelf_life(with_b003(b003)).notes
+    assert note.startswith("Known limitation:")
+    assert "base R" in note
+    assert "v1.1" in note
+
+
+def test_guideline_stamp_names_q1a_r2_and_q1e() -> None:
+    """URS-STAB-026, URS-GEN-002: stability results are stamped with both ICH Q1A(R2) and
+    ICH Q1E and the Step 4 date on each document."""
+    meta = stab.estimate_shelf_life(with_b003(B003_SIMILAR), timestamp=FIXED_TIME).metadata
+    assert meta.guideline_version == (
+        "ICH Q1A(R2) (Step 4, 2003) + ICH Q1E (Step 4, 6 February 2003)"
+    )
+
+
 def test_x_uses_last_time_point_not_list_order() -> None:
     """URS-STAB-008: X is the latest time in each batch even when entered unsorted."""
     t = [24.0, 0.0, 12.0]

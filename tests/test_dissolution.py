@@ -374,6 +374,99 @@ def test_compare_profiles_requires_bootstrap_settings_when_cv_fails() -> None:
         diss.compare_profiles(make_input(test_spread=HIGH_LATE_CV), timestamp=FIXED_TIME)
 
 
+# --- URS-DISS-010: fewer than 3 time points after the cut-off -----------------------------
+
+SLOW_START_TIMES = [10.0, 20.0, 30.0, 45.0]
+
+
+def test_fewer_than_three_points_after_cutoff_warns() -> None:
+    """URS-DISS-010: 2 points left after the 85% cut-off adds a warning; f2 is still given."""
+    data = make_input(
+        times=SLOW_START_TIMES,
+        ref_mean=[60.0, 88.0, 95.0, 98.0],
+        test_mean=[55.0, 86.0, 94.0, 97.0],
+    )
+    result = diss.compare_profiles(data, timestamp=FIXED_TIME)
+    assert result.n_points_used == 2
+    assert result.f2 is not None
+    assert len(result.warnings) == 1
+    assert "Only 2 time point(s)" in result.warnings[0]
+    assert "three to four or more dissolution time points" in result.warnings[0]
+
+
+def test_three_points_after_cutoff_do_not_warn() -> None:
+    """URS-DISS-010: 3 points after the cut-off give no warning."""
+    data = make_input(
+        times=SLOW_START_TIMES,
+        ref_mean=[60.0, 75.0, 88.0, 98.0],
+        test_mean=[55.0, 72.0, 86.0, 97.0],
+    )
+    result = diss.compare_profiles(data, timestamp=FIXED_TIME)
+    assert result.n_points_used == 3
+    assert result.warnings == ()
+
+
+# --- URS-DISS-011 to 014: known limitations -------------------------------------------------
+
+DISSOLUTION_LIMITATIONS = (
+    diss.CV_EARLY_LIMITATION_NOTE,
+    diss.F2_BOUNDARY_LIMITATION_NOTE,
+    diss.VALIDATION_LIMITATION_NOTE,
+)
+
+
+def test_compared_results_carry_known_limitation_notes() -> None:
+    """URS-DISS-011, 012, 014: every result with f1/f2 carries the CV reading, f2 = 50 and
+    validation-evidence notes; a rapid-dissolution result (no f2) carries none."""
+    mean_path = diss.compare_profiles(make_input(), timestamp=FIXED_TIME)
+    boot_path = diss.compare_profiles(
+        make_input(test_spread=HIGH_LATE_CV), BootstrapSettings(seed=1, n_resamples=1000)
+    )
+    for result in (mean_path, boot_path):
+        for note in DISSOLUTION_LIMITATIONS:
+            assert note in result.notes
+            assert note.startswith("Known limitation:")
+    rapid = diss.compare_profiles(
+        make_input(ref_mean=[60, 90, 95, 97, 98, 99], test_mean=[58, 88, 94, 96, 98, 99])
+    )
+    assert rapid.rapid_dissolution is True
+    assert rapid.notes == ()
+    assert "e.g., 15 minutes" in diss.CV_EARLY_LIMITATION_NOTE
+    assert "greater than 50 (50-100)" in diss.F2_BOUNDARY_LIMITATION_NOTE
+    assert "v1.1" in diss.VALIDATION_LIMITATION_NOTE
+
+
+def test_f2_exactly_50_is_treated_as_similar(monkeypatch: pytest.MonkeyPatch) -> None:
+    """URS-DISS-012: the guidance's "greater than 50 (50-100)" is read as inclusive, so f2 = 50
+    exactly is similar (known limitation; logic unchanged)."""
+    monkeypatch.setattr(diss, "f2", lambda reference, test: 50.0)
+    result = diss.compare_profiles(make_input(), timestamp=FIXED_TIME)
+    assert result.f2 == 50.0
+    assert result.f2_similar is True
+
+
+def test_bootstrap_path_notes_fda_does_not_describe_bootstrap() -> None:
+    """URS-DISS-013: when bootstrap f2 decides, the result notes that FDA 1997 does not describe
+    it, quotes section V.B and says the FDA-named MSD method is not in v1."""
+    boot = diss.compare_profiles(
+        make_input(test_spread=HIGH_LATE_CV), BootstrapSettings(seed=1, n_resamples=1000)
+    )
+    note = diss.BOOTSTRAP_LIMITATION_NOTE
+    assert note in boot.notes
+    assert note.startswith("Known limitation:")
+    assert "more than 15% CV" in note
+    assert "MSD" in note
+    assert "not in v1" in note
+    assert note not in diss.compare_profiles(make_input()).notes
+
+
+def test_dissolution_functions_cite_section_v_a() -> None:
+    """URS-DISS-002 (PC-DISS-02): f1/f2 rules cite FDA 1997 section V.A."""
+    for func in (diss.f1, diss.f2, diss.check_cv, diss.truncate_at_85, diss.compare_profiles):
+        assert func.__doc__ is not None
+        assert "section V.A" in func.__doc__
+
+
 # --- URS-DISS-007: bootstrap f2 ----------------------------------------------------------
 
 

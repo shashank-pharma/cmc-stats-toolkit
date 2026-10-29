@@ -408,9 +408,7 @@ def prominent_notes(result: AnyResult) -> list[str]:
     """Notes, warnings and method notes that are provisional, pending confirmation or a known
     limitation, in
     order and without repeats, for display in warning boxes (URS-UI-011)."""
-    texts = list(result.notes)
-    if isinstance(result, StabilityResult | BeResult):
-        texts += list(result.warnings)
+    texts = list(result.notes) + list(result.warnings)
     if isinstance(result, DissolutionResult) and result.bootstrap is not None:
         texts.append(result.bootstrap.method_note)
     seen: list[str] = []

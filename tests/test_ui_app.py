@@ -11,7 +11,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from cmc_stats import ui_helpers
-from cmc_stats.core import stability
+from cmc_stats.core import dissolution, stability
 from cmc_stats.models import DISCLAIMER
 
 APP = str(Path(__file__).parents[1] / "src" / "cmc_stats" / "ui.py")
@@ -89,7 +89,7 @@ def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
 
 
 def test_stability_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
-    """URS-UI-011, URS-STAB-020, 021, 024: the known-limitation notes appear in warning boxes
+    """URS-UI-011, URS-STAB-020, 021, 024, 025: the known-limitation notes appear in warning boxes
     on a stability result."""
     set_stability(app)
     app.run()
@@ -99,6 +99,19 @@ def test_stability_run_shows_known_limitations_in_warning_box(app: AppTest) -> N
     assert stability.APPENDIX_A_BRANCH_LIMITATION_NOTE in shown
     assert stability.X_DEFINITION_LIMITATION_NOTE in shown
     assert stability.GUIDELINE_BASIS_LIMITATION_NOTE in shown
+    assert stability.VALIDATION_LIMITATION_NOTE in shown
+
+
+def test_dissolution_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
+    """URS-UI-011, URS-DISS-011, 012, 014: the known-limitation notes appear in warning boxes
+    on a dissolution result."""
+    app.checkbox(key="example_dissolution").check().run()
+    app.button(key="run_dissolution").click().run()
+    assert not app.exception
+    shown = [w.value for w in app.tabs[TABS["dissolution"]].warning]
+    assert dissolution.CV_EARLY_LIMITATION_NOTE in shown
+    assert dissolution.F2_BOUNDARY_LIMITATION_NOTE in shown
+    assert dissolution.VALIDATION_LIMITATION_NOTE in shown
 
 
 def test_refrigerated_storage_shows_not_supported_error(app: AppTest) -> None:

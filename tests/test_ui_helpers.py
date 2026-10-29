@@ -457,11 +457,13 @@ STABILITY_LIMITATIONS = (
     stability.APPENDIX_A_BRANCH_LIMITATION_NOTE,
     stability.X_DEFINITION_LIMITATION_NOTE,
     stability.GUIDELINE_BASIS_LIMITATION_NOTE,
+    stability.VALIDATION_LIMITATION_NOTE,
 )
 
 
 def test_prominent_notes_include_known_limitations() -> None:
-    """URS-UI-011, URS-STAB-020, 021, 024: known-limitation notes are promoted, in order."""
+    """URS-UI-011, URS-STAB-020, 021, 024, 025: known-limitation notes are promoted, in
+    order."""
     result = stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))
     assert ui.prominent_notes(result) == list(STABILITY_LIMITATIONS)
 
@@ -483,7 +485,15 @@ def test_prominent_notes_include_bootstrap_method_note() -> None:
     )
     result = dissolution.compare_profiles(data, BootstrapSettings(seed=1, n_resamples=1000))
     assert result.bootstrap is not None
-    assert result.bootstrap.method_note in ui.prominent_notes(result)
+    prominent = ui.prominent_notes(result)
+    assert result.bootstrap.method_note in prominent
+    # URS-DISS-011 to 014: every dissolution known limitation on this result is promoted
+    assert prominent[:4] == [
+        dissolution.CV_EARLY_LIMITATION_NOTE,
+        dissolution.F2_BOUNDARY_LIMITATION_NOTE,
+        dissolution.VALIDATION_LIMITATION_NOTE,
+        dissolution.BOOTSTRAP_LIMITATION_NOTE,
+    ]
 
     # URS-UI-012: the summary table records the seed and the interval at full precision
     summary = dict(ui.dissolution_tables(result)["summary"].itertuples(index=False))

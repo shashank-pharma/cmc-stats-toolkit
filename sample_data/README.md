@@ -37,11 +37,12 @@ Expected values are independent R output (the same data as GOLD-STAB-001..003).
 | `stability_b003_faster.csv` | faster decline | separate | B003 | 24.33 | 24 months |
 
 All three are capped at 36 months (Appendix A, X = 24). Refrigerated or freezer storage, or
-significant change at accelerated, is refused as not supported in v1. Three known limitations
+significant change at accelerated, is refused as not supported in v1. Four known limitations
 appear in the warning box on every stability result: only the room-temperature,
 statistical-analysis branch of the Appendix A cap is supported (not the refrigerated 1.5X /
-X + 6 branch), X is taken as the shortest batch coverage, and the rules follow ICH Q1A(R2) and
-Q1E, not the draft consolidated ICH Q1. The separate-slopes result uses each
+X + 6 branch), X is taken as the shortest batch coverage, the rules follow ICH Q1A(R2) and
+Q1E, not the draft consolidated ICH Q1, and the golden cases are base R output on dummy data
+(a published example is planned for v1.1). The separate-slopes result uses each
 batch's own intercept and slope with the pooled mean square error of the full model
 (df = N - 2k), ICH Q1E Appendix B.2.2.1. Up to 0.5.0 it used each batch's own error (24.62).
 
@@ -59,6 +60,14 @@ Expected values are from this project's core (regression values, not an independ
 
 Running `dissolution_similar_high_cv.csv` without bootstrap settings is refused with a message
 asking for a seed and resample count. The bootstrap method is provisional (Shah et al. 1998).
+
+Known limitations shown in the warning box on every dissolution result with f1/f2 (all three
+files): the 20% CV limit "at the earlier time points (e.g., 15 minutes)" is read as t <= 15 min;
+f2 = 50 exactly is treated as similar ("f2 values greater than 50 (50-100)" read as inclusive);
+f1/f2 are checked only against a hand calculation that base R reproduces, with a published
+example (Shah et al. 1998) planned for v1.1. When bootstrap f2 decides
+(`dissolution_similar_high_cv.csv`), a fourth note says FDA 1997 does not describe bootstrap f2
+and that the multivariate (MSD) method it names in section V.B is not in v1.
 
 ## Bioequivalence (tab: Bioequivalence)
 

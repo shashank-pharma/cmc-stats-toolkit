@@ -239,7 +239,7 @@ class BootstrapF2Result(_Frozen):
 
 
 class DissolutionResult(_Frozen):
-    """Full dissolution comparison result (URS-DISS-001 to 008, URS-GEN-001, URS-GEN-002)."""
+    """Full dissolution comparison result (URS-DISS-001 to 014, URS-GEN-001, URS-GEN-002)."""
 
     inputs: DissolutionInput
     bootstrap_settings: BootstrapSettings | None
@@ -258,6 +258,7 @@ class DissolutionResult(_Frozen):
     f2_similar: bool | None
     conclusion: str
     notes: tuple[str, ...]
+    warnings: tuple[str, ...]
 
 
 # --- Stability inputs (ICH Q1E, 2003) ------------------------------------------------------

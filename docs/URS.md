@@ -8,6 +8,7 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-GEN-002 | Every result records the app version, guideline version, input hash and timestamp. | ALCOA+ data integrity |
 | URS-GEN-003 | When data come from an uploaded file, the result metadata records the file name, size in bytes and SHA-256 of the raw bytes; the field is empty when there is no file. | ALCOA+ data integrity; user decision 2026-10-28 |
 | URS-GEN-004 | A sample-data pack in sample_data/ uses the exact UI template CSV format, is regenerated reproducibly from committed seeded scripts, and lists each file's settings and expected result; a test runs every file through the UI parsing and core path and checks those expectations. | Project policy (dummy data only); user requirement 2026-10-28 |
+| URS-GEN-005 | The tool assumes US FDA expectations with ICH as the harmonised base (criteria.TARGET_AGENCY); EMA differences are recorded as notes only. | User decision (Shashank, 2026-10-29; PC-GEN-01) |
 | URS-STAB-001 | Fit a least-squares line of attribute against time for each batch. | ICH Q1E |
 | URS-STAB-002 | Test equality of slopes, then intercepts, at significance 0.25 and choose the model. | ICH Q1E |
 | URS-STAB-003 | Report the time where the one-sided 95% bound of the mean meets the limit. When slopes differ, each batch's bound uses its own intercept and slope with the pooled mean square error of the full model (individual intercepts and slopes, df = N - 2k). | ICH Q1E (2003) 2.6, p. 7; separate slopes: ICH Q1E (2003) Appendix B.2.2.1 and B.2.1, p. 10 |
@@ -32,15 +33,22 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-STAB-022 | Require the storage condition (room temperature, refrigerated or freezer; no default). Refuse refrigerated and freezer as not supported in v1. | ICH Q1E (2003) 2.4.1.2, p. 4, 2.5.1.1, p. 6, and Appendix A, p. 8; user decision 2026-10-29 (Shashank) |
 | URS-STAB-023 | Require "significant change at accelerated condition" (true/false, no default). Refuse true as not supported in v1. | ICH Q1E (2003) Appendix A, p. 8; user decision 2026-10-29 (Shashank) |
 | URS-STAB-024 | Every stability result states, as a known-limitation note, that the rules follow ICH Q1A(R2) and Q1E (Step 4, 2003), that the consolidated ICH Q1 is a Step 2 draft (11 April 2025) and not applied, and that the rules are re-checked when ICH Q1 reaches Step 4 or is adopted by FDA. | Known limitation, decided by Shashank 2026-10-29 (PC-STAB-06) |
-| URS-DISS-001 | Use only time points up to the first where both products reach 85%. | FDA IR dissolution guidance (1997) |
-| URS-DISS-002 | Calculate f1 and f2 from mean profiles. | FDA IR dissolution guidance (1997) |
-| URS-DISS-003 | Check CV limits (20% early, 10% later) and switch to bootstrap f2 when they fail. | FDA IR dissolution guidance (1997) |
-| URS-DISS-004 | Reject input with fewer than 12 units for either product, naming the product and its unit count. | FDA IR dissolution guidance (1997) |
-| URS-DISS-005 | Reject input when reference and test time points differ in count or in any value, listing the mismatches. | FDA IR dissolution guidance (1997) |
-| URS-DISS-006 | When both products reach 85% within 15 minutes, flag that profile comparison is usually unnecessary and give no f2 verdict. | FDA IR dissolution guidance (1997) |
+| URS-STAB-025 | Every stability result states, as a known-limitation note, that the golden cases are independent base R output on dummy data and that a published-example cross-check is planned for v1.1. | Known limitation (Shashank, 2026-10-29; PC-STAB-07) |
+| URS-STAB-026 | Stability results are stamped with the guideline version "ICH Q1A(R2) (Step 4, 2003) + ICH Q1E (Step 4, 6 February 2003)". | URS-GEN-002; user decision (Shashank, 2026-10-29); Q1A(R2) day and month pending confirmation |
+| URS-DISS-001 | Use only time points up to the first where both products reach 85%. | FDA IR dissolution guidance (1997), section V.A, pp. 8-9 |
+| URS-DISS-002 | Calculate f1 and f2 from mean profiles. | FDA IR dissolution guidance (1997), section V.A, pp. 8-9 |
+| URS-DISS-003 | Check CV limits (20% early, 10% later) and switch to bootstrap f2 when they fail. | FDA IR dissolution guidance (1997), section V.A, pp. 8-9 |
+| URS-DISS-004 | Reject input with fewer than 12 units for either product, naming the product and its unit count. | FDA IR dissolution guidance (1997), section V.A, pp. 8-9 |
+| URS-DISS-005 | Reject input when reference and test time points differ in count or in any value, listing the mismatches. | FDA IR dissolution guidance (1997), section V.A, pp. 8-9 |
+| URS-DISS-006 | When both products reach 85% within 15 minutes, flag that profile comparison is usually unnecessary and give no f2 verdict. | FDA IR dissolution guidance (1997), section V.A, pp. 8-9 |
 | URS-DISS-007 | Bootstrap f2 resamples units with replacement from a caller-supplied seed and resample count, reports the percentile 90% interval and records both; similar if the 5th percentile is at least 50. | Shah et al., Pharm Res 1998 - provisional, pending agency text |
-| URS-DISS-008 | Report f1 against the companion limit of 15; f2 alone decides similarity. | FDA IR dissolution guidance (1997) |
+| URS-DISS-008 | Report f1 against the companion limit of 15; f2 alone decides similarity. | FDA IR dissolution guidance (1997), section V.A, pp. 8-9 |
 | URS-DISS-009 | Reject ragged unit rows, non-finite or negative values, and time points that are not strictly increasing and positive. | Project policy (reject bad input loudly) |
+| URS-DISS-010 | When fewer than 3 time points remain after the 85% cut-off, add a warning (not an error) quoting the guidance; f1 and f2 are still calculated. | FDA IR dissolution guidance (1997), subsection pending confirmation: "most suitable for dissolution profile comparison when three to four or more dissolution time points are available" |
+| URS-DISS-011 | Every result with f1/f2 states, as a known-limitation note, that the 20% CV limit "at the earlier time points (e.g., 15 minutes)" is read as t <= 15 min. | FDA IR dissolution guidance (1997), section V.A; known limitation (Shashank, 2026-10-29; PC-DISS-03) |
+| URS-DISS-012 | Every result with f1/f2 states, as a known-limitation note, that f2 = 50 exactly (or a bootstrap lower bound of exactly 50) is treated as similar, reading "f2 values greater than 50 (50-100)" as inclusive. | FDA IR dissolution guidance (1997); known limitation (Shashank, 2026-10-29) |
+| URS-DISS-013 | When bootstrap f2 decides, the result states, as a known-limitation note, that FDA 1997 does not describe bootstrap f2, quotes section V.B on within-batch CV above 15%, and says the FDA-named multivariate (MSD) method is not in v1. | FDA IR dissolution guidance (1997), section V.B, pp. 9-10; known limitation (Shashank, 2026-10-29; PC-DISS-01) |
+| URS-DISS-014 | Every result with f1/f2 states, as a known-limitation note, that f1/f2 are checked against a hand calculation on dummy data (reproduced in base R) and bootstrap f2 against no independent implementation, with a published example planned for v1.1. | Known limitation (Shashank, 2026-10-29; PC-DISS-04) |
 | URS-BE-001 | Accept bioequivalence when the 90% CI of the GMR lies within 80.00-125.00%. | ICH M13A |
 | URS-BE-002 | Analyse log values with sequence, subject(sequence), period and treatment terms. | ICH M13A; FDA BE statistics guidance |
 | URS-BE-003 | Report within-subject CV and both TOST p-values. | FDA BE statistics guidance |

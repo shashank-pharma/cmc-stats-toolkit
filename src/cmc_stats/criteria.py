@@ -27,22 +27,33 @@ STABILITY_MIN_POINTS_PER_BATCH: Final[int] = 3
 # Project policy, not a regulatory value: a slope needs 2 distinct times (URS-STAB-011)
 STABILITY_MIN_DISTINCT_TIMES: Final[int] = 2
 
-# FDA guidance, Dissolution Testing of IR Solid Oral Dosage Forms (1997)
+# FDA guidance, Dissolution Testing of Immediate Release Solid Oral Dosage Forms (1997),
+# section V.A, pp. 8-9 (PC-DISS-02): 12 units each; "Only one measurement should be considered
+# after 85% dissolution of both the products"; f2 "greater than 50 (50-100)" means similar,
+# read as inclusive of 50 (known limitation, URS-DISS-012)
 F2_SIMILAR_MIN: Final[float] = 50.0
 DISSOLUTION_MIN_UNITS: Final[int] = 12
 DISSOLUTION_PLATEAU_PCT: Final[float] = 85.0
 CV_LIMIT_EARLY_PCT: Final[float] = 20.0
 CV_LIMIT_LATER_PCT: Final[float] = 10.0
-# FDA IR dissolution guidance (1997): earlier time points (for example up to 15 minutes) take
-# the 20% CV limit; later points take 10%
+# FDA IR dissolution guidance (1997), section V.A: "at the earlier time points (e.g., 15
+# minutes) should not be more than 20%". The 15 minutes is an example; t <= 15 min is this
+# tool's reading (known limitation, PC-DISS-03, URS-DISS-011)
 CV_EARLY_MAX_TIME_MIN: Final[float] = 15.0
-# FDA IR dissolution guidance (1997): >= 85% within 15 minutes, profile comparison unnecessary
+# FDA IR dissolution guidance (1997), section V.A: >= 85% within 15 minutes, profile comparison
+# unnecessary
 RAPID_DISSOLUTION_TIME_MIN: Final[float] = 15.0
-# FDA IR dissolution guidance (1997): f1 from 0 to 15 is the companion similarity check
+# FDA IR dissolution guidance (1997), section V.A: f1 from 0 to 15 is the companion check
 F1_SIMILAR_MAX: Final[float] = 15.0
+# FDA IR dissolution guidance (1997), subsection pending confirmation: f2 is "most suitable
+# for dissolution profile comparison when three to four or more dissolution time points are
+# available". Warn (not refuse) below 3 points after the 85% cut-off (URS-DISS-010)
+DISSOLUTION_MIN_TIME_POINTS: Final[int] = 3
 
 # Shah et al., Pharm Res 1998 - provisional, pending agency text: percentile bootstrap f2
-# interval level; similarity when the lower bound (5th percentile) is at least F2_SIMILAR_MIN
+# interval level; similarity when the lower bound (5th percentile) is at least F2_SIMILAR_MIN.
+# FDA IR dissolution guidance (1997) does not describe bootstrap f2 (known limitation,
+# PC-DISS-01, URS-DISS-013)
 BOOTSTRAP_CI_LEVEL: Final[float] = 0.90
 # Project policy, not a regulatory value: input guard so the 5th/95th percentiles are stable
 BOOTSTRAP_MIN_RESAMPLES: Final[int] = 1000
@@ -64,8 +75,14 @@ BE_MIN_SUBJECTS_PER_SEQUENCE: Final[int] = 1
 # Project policy, not a regulatory value: residual df of the ANOVA must be >= 1 (URS-BE-013)
 BE_MIN_RESIDUAL_DF: Final[int] = 1
 
+# User decision (Shashank, 2026-10-29; PC-GEN-01, URS-GEN-005): the tool follows US FDA
+# expectations with ICH as the harmonised base; EMA differences are recorded as notes only
+TARGET_AGENCY: Final[str] = "US FDA (ICH as the harmonised base)"
+
+# Stability stamp (URS-STAB-026): the Step 4 date shown on ICH Q1E is 6 February 2003 (checked
+# by the user, PC-STAB-01); the Q1A(R2) day and month are pending confirmation
 GUIDELINE_VERSIONS: Final[dict[str, str]] = {
-    "stability": "ICH Q1E (Step 4, 2003)",
+    "stability": "ICH Q1A(R2) (Step 4, 2003) + ICH Q1E (Step 4, 6 February 2003)",
     "dissolution": "FDA IR dissolution guidance (1997)",
     "bioequivalence": "ICH M13A (Step 4, 2024)",
 }

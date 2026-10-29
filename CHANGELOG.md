@@ -1,5 +1,41 @@
 # Changelog
 
+## Unreleased
+Behaviour changes: the stability guideline stamp changes from "ICH Q1E (Step 4, 2003)" to
+"ICH Q1A(R2) (Step 4, 2003) + ICH Q1E (Step 4, 6 February 2003)" (URS-STAB-026).
+`DissolutionResult` has a new field `warnings` (also in the `/dissolution` API response).
+No calculated result changes: f1, f2, bootstrap f2 and shelf-life logic are untouched, and
+no golden expected value was edited. Version not bumped in this commit.
+
+### Changed
+- PC-DISS-02 confirmed: f1/f2, 12 units and the 85% rule cite FDA 1997 section V.A,
+  pp. 8-9; every "section V" citation in `core/dissolution.py` and `criteria.py` now reads
+  V.A, and URS-DISS-001..006 and 008 cite V.A.
+- PC-GEN-01 confirmed: target agency is US FDA with ICH as the harmonised base; EMA
+  differences are notes only (URS-GEN-005, `criteria.TARGET_AGENCY`).
+- New URS-DISS-010: fewer than 3 time points after the 85% cut-off adds a warning ("three to
+  four or more dissolution time points"; subsection pending confirmation, PC-DISS-05).
+- `ui_helpers.prominent_notes` now also reads dissolution warnings (URS-UI-011).
+
+### Known limitations (decided by Shashank, 2026-10-29)
+- PC-STAB-07: stability golden cases are base R output on dummy data; a published-example
+  cross-check is planned for v1.1 (URS-STAB-025).
+- PC-DISS-01: FDA 1997 does not describe bootstrap f2; V.B (pp. 9-10) names a multivariate
+  model independent procedure for within-batch CV above 15%. Bootstrap f2 stays supplementary
+  and provisional; the MSD method is not in v1 (URS-DISS-013).
+- PC-DISS-03: the 20% CV limit "at the earlier time points (e.g., 15 minutes)" is read as
+  t <= 15 min (URS-DISS-011).
+- PC-DISS-04: GOLD-DISS-001 is a hand calculation (reproduced in base R, not committed as a
+  script) and there is no bootstrap golden case; a published example (Shah et al. 1998) is
+  planned for v1.1 (URS-DISS-014).
+- PC-DISS-06: f2 = 50 exactly (and a bootstrap lower bound of 50) is treated as similar,
+  reading "f2 values greater than 50 (50-100)" as inclusive (URS-DISS-012).
+Every affected result carries these as notes, shown in the warning box (URS-UI-011).
+
+### Still open for 1.0.0
+PC-STAB-08 (Q1A(R2) Step 4 day and month), PC-DISS-05 (subsection of the three-points
+quote), PC-BE-01..04.
+
 ## 0.7.0 - 2026-10-29
 Behaviour change: `StabilityInput` has a new required field `storage_condition`
 ("room_temperature", "refrigerated" or "freezer", no default; URS-STAB-022). Stability input

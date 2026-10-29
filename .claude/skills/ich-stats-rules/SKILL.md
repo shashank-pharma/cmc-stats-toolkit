@@ -60,8 +60,18 @@ refrigerated, freezer and significant change at accelerated (URS-STAB-022, 023).
     usually unnecessary: flag this instead of calculating f2.
 - When CV conditions fail: bootstrap f2. Resample units with replacement, recompute f2,
   report the percentile 90% interval; similarity if the 5th percentile is at least 50.
-  Take the number of resamples and the seed as inputs and return both. Ask the user which
-  agency's expectation applies before finalising the bootstrap method.
+  Take the number of resamples and the seed as inputs and return both. Target agency is US
+  FDA with ICH as the harmonised base; EMA differences are notes only (Shashank, 2026-10-29,
+  PC-GEN-01, URS-GEN-005). FDA 1997 does not describe bootstrap f2: V.B (pp. 9-10) names a
+  multivariate model independent procedure for within-batch CV above 15%, which is not in v1.
+  Bootstrap f2 stays supplementary and provisional (known limitation, PC-DISS-01,
+  URS-DISS-013).
+- Section and readings (Shashank, 2026-10-29): f1/f2, 12 units, the 85% rule and CV limits
+  are FDA 1997 section V.A, pp. 8-9 (PC-DISS-02). "Earlier time points (e.g., 15 minutes)"
+  is read as t <= 15 min (known limitation, PC-DISS-03, URS-DISS-011). "f2 values greater
+  than 50 (50-100)" is read as inclusive: f2 = 50 is similar (known limitation,
+  URS-DISS-012). Warn when fewer than 3 points remain after the 85% cut-off ("three to four
+  or more dissolution time points"; subsection pending confirmation, URS-DISS-010).
 
 ## 3. Bioequivalence, 2x2 crossover (ICH M13A, 2024; FDA BE statistics guidance)
 

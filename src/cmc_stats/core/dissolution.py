@@ -1,9 +1,9 @@
 """Dissolution profile similarity: f1, f2, 85% cut-off, CV checks and bootstrap f2.
 
 Rules follow FDA guidance, Dissolution Testing of Immediate Release Solid Oral Dosage Forms
-(1997), section V (dissolution profile comparisons) as summarised in the
-ich-stats-rules skill. The bootstrap f2 follows Shah et al., Pharm Res 1998 and is provisional,
-pending agency text. All values are kept at full precision.
+(1997), section V.A, pp. 8-9, as summarised in the ich-stats-rules skill. The bootstrap f2
+follows Shah et al., Pharm Res 1998 and is provisional, pending agency text; FDA 1997 does not
+describe it (known limitation, URS-DISS-013). All values are kept at full precision.
 """
 
 from collections.abc import Sequence
@@ -32,6 +32,28 @@ BOOTSTRAP_METHOD_NOTE = (
     "then test), on the time points fixed by the 85% rule from the observed means; "
     "percentiles by linear interpolation (numpy 'linear', R type 7)."
 )
+BOOTSTRAP_LIMITATION_NOTE = (
+    "Known limitation: FDA IR dissolution guidance (1997) does not describe bootstrap f2. "
+    'Section V.B says: "In instances where within batch variation is more than 15% CV, a '
+    'multivariate model independent procedure is more suitable." That FDA-named method '
+    "(MSD) is not in v1; bootstrap f2 is supplementary and provisional."
+)
+CV_EARLY_LIMITATION_NOTE = (
+    "Known limitation: FDA IR dissolution guidance (1997), section V.A, sets a 20% CV limit "
+    '"at the earlier time points (e.g., 15 minutes)" and 10% at other time points. The 15 '
+    "minutes is an example; this tool reads it as t <= 15 min."
+)
+F2_BOUNDARY_LIMITATION_NOTE = (
+    'Known limitation: FDA IR dissolution guidance (1997) gives similarity as "f2 values '
+    'greater than 50 (50-100)". This tool reads the range 50-100 as inclusive: f2 = 50 exactly '
+    "(or a bootstrap lower bound of exactly 50) is treated as similar."
+)
+VALIDATION_LIMITATION_NOTE = (
+    "Known limitation: f1 and f2 are checked against one hand-calculated example on dummy data "
+    "(GOLD-DISS-001, which base R reproduces) and bootstrap f2 against no independent "
+    "implementation; no published worked example has been checked. A published example "
+    "(Shah et al. 1998) is planned for v1.1."
+)
 
 
 def _pair(reference: ArrayLike, test: ArrayLike) -> tuple[NDArray[np.float64], ...]:
@@ -50,7 +72,7 @@ def _pair(reference: ArrayLike, test: ArrayLike) -> tuple[NDArray[np.float64], .
 def f1(reference: ArrayLike, test: ArrayLike) -> float:
     """Difference factor f1 from mean profiles (URS-DISS-002).
 
-    f1 = 100 * sum(|R_t - T_t|) / sum(R_t). FDA IR dissolution guidance (1997), section V.
+    f1 = 100 * sum(|R_t - T_t|) / sum(R_t). FDA IR dissolution guidance (1997), section V.A.
 
     Raises:
         ValueError: unequal or empty profiles, or a reference sum of zero.
@@ -66,7 +88,7 @@ def f2(reference: ArrayLike, test: ArrayLike) -> float:
     """Similarity factor f2 from mean profiles (URS-DISS-002).
 
     f2 = 50 * log10(100 / sqrt(1 + (1/n) * sum((R_t - T_t)^2))).
-    FDA IR dissolution guidance (1997), section V.
+    FDA IR dissolution guidance (1997), section V.A.
 
     Raises:
         ValueError: unequal or empty profiles.
@@ -77,12 +99,12 @@ def f2(reference: ArrayLike, test: ArrayLike) -> float:
 
 
 def f1_within_limit(f1_value: float) -> bool:
-    """Companion check f1 <= 15 (URS-DISS-008). FDA IR dissolution guidance (1997), section V."""
+    """Companion check f1 <= 15 (URS-DISS-008). FDA IR dissolution guidance (1997), section V.A."""
     return f1_value <= criteria.F1_SIMILAR_MAX
 
 
 def unit_cv_pct(units: ArrayLike) -> NDArray[np.float64]:
-    """CV% per time point: 100 * SD (ddof=1) / mean (URS-DISS-003; FDA 1997, section V).
+    """CV% per time point: 100 * SD (ddof=1) / mean (URS-DISS-003; FDA 1997, section V.A).
 
     Args:
         units: rows are dosage units, columns are time points.
@@ -101,7 +123,7 @@ def unit_cv_pct(units: ArrayLike) -> NDArray[np.float64]:
 def check_cv(times_min: ArrayLike, reference_units: ArrayLike, test_units: ArrayLike) -> CvCheck:
     """Check CV limits for both products at each time point (URS-DISS-003).
 
-    FDA IR dissolution guidance (1997), section V: at most 20% at earlier points (here
+    FDA IR dissolution guidance (1997), section V.A: at most 20% at earlier points (here
     t <= ``CV_EARLY_MAX_TIME_MIN``) and at most 10% at later points. Pass only the time points
     that are used after the 85% rule.
     """
@@ -132,7 +154,7 @@ def truncate_at_85(
 ) -> TruncationResult:
     """Keep points up to and including the first where both means reach 85% (URS-DISS-001).
 
-    FDA IR dissolution guidance (1997), section V: only one measurement after 85% dissolution
+    FDA IR dissolution guidance (1997), section V.A: only one measurement after 85% dissolution
     of both products. Excluded points are listed, never silently dropped. If both products never
     reach 85% at the same point, every point is kept and the reason says so.
     """
@@ -166,7 +188,7 @@ def is_rapidly_dissolving(
 ) -> bool:
     """True when each product reaches 85% at some point within 15 min (URS-DISS-006).
 
-    FDA IR dissolution guidance (1997), section V: profile comparison is then usually
+    FDA IR dissolution guidance (1997), section V.A: profile comparison is then usually
     unnecessary, so no f2 verdict is given.
     """
     times = np.asarray(times_min, dtype=np.float64)
@@ -225,12 +247,14 @@ def compare_profiles(
     timestamp: datetime | None = None,
     source_files: Sequence[SourceFile] = (),
 ) -> DissolutionResult:
-    """Compare reference and test dissolution profiles (URS-DISS-001 to 008, URS-GEN-001 to 003).
+    """Compare reference and test dissolution profiles (URS-DISS-001 to 014, URS-GEN-001 to 003).
 
-    FDA IR dissolution guidance (1997), section V; bootstrap per Shah et al., Pharm Res 1998
+    FDA IR dissolution guidance (1997), section V.A; bootstrap per Shah et al., Pharm Res 1998
     (provisional). Steps: mean profiles; rapid-dissolution flag (no f2 verdict); 85% cut-off;
     CV checks on the points used; f1 and f2 from means. If CV limits pass, mean-data f2
     decides. If they fail, bootstrap f2 decides and ``bootstrap`` settings are required.
+    Known-limitation notes (URS-DISS-011 to 014) go in ``notes``; fewer than
+    ``DISSOLUTION_MIN_TIME_POINTS`` points after the cut-off adds a warning (URS-DISS-010).
     ``source_files`` (raw uploads the data came from) are recorded in the metadata only.
 
     Raises:
@@ -276,6 +300,7 @@ def compare_profiles(
                 "unnecessary (FDA IR dissolution guidance, 1997). No f2 verdict given."
             ),
             notes=(),
+            warnings=(),
         )
 
     truncation = truncate_at_85(data.times_min, mean_ref, mean_test)
@@ -283,7 +308,20 @@ def compare_profiles(
     cv = check_cv(times[used], ref_units[:, used], test_units[:, used])
     f1_value = f1(mean_ref[used], mean_test[used])
     f2_value = f2(mean_ref[used], mean_test[used])
-    notes: list[str] = [truncation.reason]
+    notes: list[str] = [
+        truncation.reason,
+        CV_EARLY_LIMITATION_NOTE,
+        F2_BOUNDARY_LIMITATION_NOTE,
+        VALIDATION_LIMITATION_NOTE,
+    ]
+    warnings: list[str] = []
+    if len(used) < criteria.DISSOLUTION_MIN_TIME_POINTS:
+        warnings.append(
+            f"Only {len(used)} time point(s) used after the "
+            f"{criteria.DISSOLUTION_PLATEAU_PCT}% cut-off: FDA IR dissolution guidance (1997) "
+            'says f2 is "most suitable for dissolution profile comparison when three to four '
+            'or more dissolution time points are available" (subsection pending confirmation).'
+        )
     limit = criteria.F2_SIMILAR_MIN
 
     boot: BootstrapF2Result | None = None
@@ -306,6 +344,7 @@ def compare_profiles(
         basis = "bootstrap_f2"
         verdict = f"bootstrap f2 lower bound {'>=' if similar else '<'} {limit}"
         notes.append(f"CV limits fail at {failed} min: bootstrap f2 decides similarity")
+        notes.append(BOOTSTRAP_LIMITATION_NOTE)
 
     return DissolutionResult(
         inputs=data,
@@ -325,4 +364,5 @@ def compare_profiles(
         f2_similar=similar,
         conclusion=f"{'Similar' if similar else 'Not similar'}: {verdict}",
         notes=tuple(notes),
+        warnings=tuple(warnings),
     )

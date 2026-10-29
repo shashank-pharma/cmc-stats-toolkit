@@ -68,3 +68,13 @@ def test_batch_minimum_and_primary_batch_warning_threshold() -> None:
 def test_every_area_has_a_guideline_version() -> None:
     """URS-GEN-002: every result can be stamped with the guideline version it follows."""
     assert set(criteria.GUIDELINE_VERSIONS) == {"stability", "dissolution", "bioequivalence"}
+
+
+def test_target_agency_is_us_fda_with_ich_base() -> None:
+    """URS-GEN-005: the tool assumes US FDA expectations with ICH as the harmonised base."""
+    assert criteria.TARGET_AGENCY == "US FDA (ICH as the harmonised base)"
+
+
+def test_minimum_time_points_after_cutoff_is_three() -> None:
+    """URS-DISS-010: fewer than 3 time points after the 85% cut-off gives a warning."""
+    assert criteria.DISSOLUTION_MIN_TIME_POINTS == 3
