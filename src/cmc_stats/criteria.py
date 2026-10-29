@@ -6,15 +6,15 @@ major version bump (see the validation-docs skill).
 
 from typing import Final
 
-# ICH Q1E (2003), section 2.3 and Appendix B: batch poolability significance level
+# ICH Q1E (2003), Appendix B.2.2.1, p. 10: batch poolability significance level (PC-STAB-03)
 POOLABILITY_ALPHA: Final[float] = 0.25
 # ICH Q1E (2003): confidence level for the bound on the mean regression line
 SHELF_LIFE_CONFIDENCE: Final[float] = 0.95
 # ICH Q1E (2003), Appendix A: extrapolation limits when statistical analysis is performed
 EXTRAPOLATION_FACTOR_STATS: Final[float] = 2.0
 EXTRAPOLATION_MAX_EXTRA_MONTHS_STATS: Final[int] = 12
-# ICH Q1A(R2), Selection of Batches (drug substance and drug product): at least three primary
-# batches. Warning only (URS-STAB-017). Section numbers pending confirmation against the PDF.
+# ICH Q1A(R2) (2003), Selection of Batches: 2.1.3 (drug substance), p. 2, and 2.2.3 (drug
+# product), p. 6: at least three primary batches. Warning only (URS-STAB-017, PC-STAB-02).
 STABILITY_PRIMARY_BATCHES: Final[int] = 3
 # Project policy, not a regulatory value: minimum for the poolability tests (URS-STAB-009)
 STABILITY_MIN_BATCHES: Final[int] = 2

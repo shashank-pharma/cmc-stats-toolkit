@@ -438,16 +438,16 @@ def test_template_run_records_template_name() -> None:
 # --- URS-UI-011: prominent notes ----------------------------------------------------------
 
 
-def test_prominent_notes_pick_pending_and_skip_confirmed_separate_note() -> None:
-    """URS-UI-011: the Q1A(R2) (pending) warning is surfaced; the separate-slopes note, confirmed
-    against ICH Q1E Appendix B.2.2.1, is an ordinary note and is not promoted."""
+def test_prominent_notes_skip_confirmed_stability_notes() -> None:
+    """URS-UI-011: the separate-slopes note (ICH Q1E Appendix B.2.2.1, PC-STAB-01) and the
+    Q1A(R2) fewer-than-3-batches warning (2.1.3 and 2.2.3, PC-STAB-02) are confirmed, so neither
+    is promoted; the warning is still shown in its own box by ui.show_result."""
     data = stab_golden("GOLD-STAB-003")
     two_batches = data.model_copy(update={"batches": data.batches[1:]})
     result = stability.estimate_shelf_life(two_batches)
-    notes = ui.prominent_notes(result)
     assert stability.SEPARATE_MODEL_NOTE in result.notes
-    assert stability.SEPARATE_MODEL_NOTE not in notes
-    assert any("pending confirmation" in n for n in notes)
+    assert any("ICH Q1A(R2)" in w for w in result.warnings)
+    assert ui.prominent_notes(result) == []
 
 
 def test_prominent_notes_include_bootstrap_method_note() -> None:

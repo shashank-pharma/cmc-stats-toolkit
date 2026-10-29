@@ -338,7 +338,8 @@ def estimate_shelf_life(
     ICH Q1E (2003), Appendices A and B. Steps: per-batch fits; poolability
     at 0.25 (slopes, then intercepts); bound of each line of the chosen model; earliest
     crossing (worst batch governs); Appendix A cap; shelf-life rounded down to whole months.
-    Warns when there are fewer than 3 batches (ICH Q1A(R2), Selection of Batches).
+    Warns when there are fewer than 3 batches (ICH Q1A(R2), Selection of Batches, 2.1.3 and
+    2.2.3).
     ``source_files`` (raw uploads the data came from) are recorded in the metadata only.
     """
     metadata = make_metadata(
@@ -397,9 +398,9 @@ def estimate_shelf_life(
     n = len(data.batches)
     if n < criteria.STABILITY_PRIMARY_BATCHES:
         warnings.append(
-            f"Only {n} batches supplied; ICH Q1A(R2), Selection of Batches (drug substance "
-            f"and drug product) calls for at least {criteria.STABILITY_PRIMARY_BATCHES} "
-            "primary batches (section numbers pending confirmation)."
+            f"Only {n} batches supplied; ICH Q1A(R2), Selection of Batches (2.1.3 drug "
+            f"substance, 2.2.3 drug product) calls for at least "
+            f"{criteria.STABILITY_PRIMARY_BATCHES} primary batches."
         )
 
     who = f"batch {governing} governs" if governing else "all batches"

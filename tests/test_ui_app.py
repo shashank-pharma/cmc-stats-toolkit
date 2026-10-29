@@ -85,6 +85,28 @@ def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
     assert tab.get("plotly_chart")
 
 
+def test_two_batch_stability_run_shows_q1a_warning(
+    app: AppTest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """URS-UI-011, URS-STAB-017: the confirmed (not pending) Q1A(R2) fewer-than-3-batches
+    warning still reaches the screen in its own warning box."""
+    raw = b"".join(
+        line
+        for line in ui_helpers.template_csv("stability").splitlines(keepends=True)
+        if not line.startswith(b"B003,")
+    )
+    monkeypatch.setattr(ui_helpers, "template_source", lambda area: ("two_batches.csv", raw))
+    set_stability(app)
+    app.run()
+    app.button(key="run_stability").click().run()
+    assert not app.exception
+    tab = app.tabs[TABS["stability"]]
+    assert any(
+        "ICH Q1A(R2), Selection of Batches" in w.value and "2.1.3" in w.value for w in tab.warning
+    )
+    assert any("Proposed shelf-life" in m.value for m in tab.markdown)
+
+
 def test_unsupported_choice_shows_error_and_no_result(app: AppTest) -> None:
     """URS-UI-009: the model's message is shown verbatim and no result is displayed."""
     app.checkbox(key="example_be").check()

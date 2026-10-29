@@ -507,9 +507,14 @@ def test_cap_limits_shelf_life_when_crossing_is_later() -> None:
 
 
 def test_two_batches_run_with_q1a_warning() -> None:
-    """URS-STAB-017: 2 batches -> result returned with an ICH Q1A(R2) warning."""
+    """URS-STAB-017: 2 batches -> result returned with an ICH Q1A(R2) warning that cites
+    2.1.3 and 2.2.3 and is no longer pending confirmation (PC-STAB-02)."""
     result = stab.estimate_shelf_life(make_input({"B001": B001, "B002": B002}))
-    assert any("ICH Q1A(R2), Selection of Batches" in w for w in result.warnings)
+    (warning,) = result.warnings
+    assert "ICH Q1A(R2), Selection of Batches" in warning
+    assert "2.1.3" in warning
+    assert "2.2.3" in warning
+    assert "pending confirmation" not in warning
     assert result.proposed_shelf_life_months > 0
 
 

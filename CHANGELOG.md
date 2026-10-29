@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+No calculated result changes.
+
+### Changed
+- PC-STAB-02 confirmed: the fewer-than-3-batches warning, `criteria.STABILITY_PRIMARY_BATCHES`
+  and URS-STAB-017 cite ICH Q1A(R2) 2.1.3 (p. 2) and 2.2.3 (p. 6); "pending confirmation"
+  removed. The warning is still shown in a warning box, but is no longer promoted as pending
+  (URS-UI-011; test renamed to test_prominent_notes_skip_confirmed_stability_notes).
+  Register row records the confirmed 2.1.3 and 2.2.3 sentences, and 2.1.9 / 2.2.9
+  ("rejection of more than 0.25") as support for URS-STAB-019.
+
+### Added
+- test_ui_app::test_two_batch_stability_run_shows_q1a_warning (URS-UI-011, URS-STAB-017):
+  the fewer-than-3-batches warning reaches the screen.
+- PC-STAB-03 confirmed: `criteria.POOLABILITY_ALPHA` comment now cites ICH Q1E Appendix
+  B.2.2.1, p. 10 (was "section 2.3 and Appendix B").
+
 ## 0.6.0 - 2026-10-29
 Calculated result changed: when batch slopes differ (separate-slopes model), each batch's
 one-sided 95% bound now uses its own intercept and slope with the pooled mean square error of

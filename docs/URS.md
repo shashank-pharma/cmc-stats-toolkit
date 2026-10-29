@@ -24,7 +24,7 @@ Each requirement has an ID, a testable statement and its source. Tests reference
 | URS-STAB-014 | Reject non-finite values (NaN, infinity) in times, values or the limit. | Project policy |
 | URS-STAB-015 | Reject empty or duplicate batch labels, labels with leading or trailing whitespace and labels that differ only by letter case, naming them. | Project policy |
 | URS-STAB-016 | If the bound is at or below the limit at time 0, report a shelf-life of 0 and that no shelf-life is supported; if the bound never meets the limit, the extrapolation cap sets the shelf-life and a note says so. | Project policy |
-| URS-STAB-017 | With fewer than 3 batches, add a warning (not an error) to the result; the calculation still runs. | ICH Q1A(R2), Selection of Batches (drug substance and drug product); section numbers pending confirmation |
+| URS-STAB-017 | With fewer than 3 batches, add a warning (not an error) to the result; the calculation still runs. | ICH Q1A(R2) (2003), Selection of Batches: 2.1.3 (drug substance), p. 2, and 2.2.3 (drug product), p. 6 |
 | URS-STAB-018 | Reject negative values (naming the batch) and a negative lower limit; values above 100% are kept as entered. | Project policy (reject bad input loudly) |
 | URS-STAB-019 | A poolability test pools only when p > 0.25; at p <= 0.25 equality is rejected (slopes, then intercepts). | ICH Q1A(R2) 2.1.9 and 2.2.9 ("more than 0.25"), pp. 5 and 13; ICH Q1 Step 2 draft (2025) Annex 2 A2-1.2-1, p. A2-6; user decision 2026-10-29 (Shashank) |
 | URS-DISS-001 | Use only time points up to the first where both products reach 85%. | FDA IR dissolution guidance (1997) |
