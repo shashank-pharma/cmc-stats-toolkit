@@ -58,18 +58,31 @@ BOOTSTRAP_CI_LEVEL: Final[float] = 0.90
 # Project policy, not a regulatory value: input guard so the 5th/95th percentiles are stable
 BOOTSTRAP_MIN_RESAMPLES: Final[int] = 1000
 
-# ICH M13A (2024): average bioequivalence acceptance range for the 90% CI of the GMR (%)
+# BE sources (PC-BE-01..03, quotes confirmed by the user, Shashank 2026-11-03): ICH M13A (2024)
+# and FDA, Statistical Approaches to Establishing Bioequivalence (May 2026), "FDA (May 2026)".
+# ICH M13A (2024), 2.2.4, p. 13: acceptance range 80.00-125.00% for the 90% CI of the GMR
 BE_LOWER_PCT: Final[float] = 80.00
 BE_UPPER_PCT: Final[float] = 125.00
+# ICH M13A (2024), 2.2.3.1, pp. 11-12: 90% CI on the log scale, equivalent to two one-sided
+# tests at the 5% level
 BE_CI_LEVEL: Final[float] = 0.90
-BE_ROUND_DECIMALS: Final[int] = 2  # confirm for the target agency
-# Placeholder, pending confirmation against the target agency text (URS-BE-016): CI limits
-# are rounded half up (decimal.ROUND_HALF_UP) to BE_ROUND_DECIMALS before comparison
+# FDA (May 2026), I.B footnote 6, p. 3: "the rounded confidence interval value should be at
+# least 80.00 percent and not more than 125.00 percent" (PC-BE-01). EMA 4.1.8 (p. 15/27),
+# "when rounded to two decimal places", is a note only (URS-GEN-005)
+BE_ROUND_DECIMALS: Final[int] = 2
+# No guidance states the rounding mode: rounding half up (decimal.ROUND_HALF_UP) is this tool's
+# choice (known limitation, PC-BE-01, URS-BE-016, URS-BE-020)
 BE_ROUNDING_MODE: Final[str] = "ROUND_HALF_UP"
-# Agencies differ on whether AUC0-inf is decision-making (FDA vs EMA). Placeholder, pending
-# confirmation against the target agency text (URS-BE-014): when False, AUC0-inf is reported
+# FDA (May 2026), II.C.2, p. 13, "Statistical Information and Implementation of Criteria for
+# PK Measures (AUC0-t, AUC0-∞, and Cmax)": AUC0-inf is decision-making (PC-BE-02, URS-BE-014).
+# Notes only: ICH M13A 2.2.2.2 (p. 11) lists AUC(0-inf) as an additional parameter; EMA 4.1.8
+# (p. 15/27) analyses only AUC(0-t) and Cmax. The FDA ANDA PK-endpoints guidance cited in
+# footnote 6 was not checked (known limitation, URS-BE-021). When False, AUC0-inf is reported
 # but does not count towards the overall BE verdict
 BE_AUC0INF_DECISION_MAKING: Final[bool] = True
+# ICH M13A (2024), 2.2.3.1, p. 12: a crossover study is not acceptable with fewer than 12
+# evaluable subjects (URS-BE-019)
+BE_MIN_EVALUABLE_SUBJECTS: Final[int] = 12
 # Project policy, not a regulatory value: each sequence needs a subject (URS-BE-012)
 BE_MIN_SUBJECTS_PER_SEQUENCE: Final[int] = 1
 # Project policy, not a regulatory value: residual df of the ANOVA must be >= 1 (URS-BE-013)
@@ -85,5 +98,8 @@ TARGET_AGENCY: Final[str] = "US FDA (ICH as the harmonised base)"
 GUIDELINE_VERSIONS: Final[dict[str, str]] = {
     "stability": "ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)",
     "dissolution": "FDA IR dissolution guidance (1997)",
-    "bioequivalence": "ICH M13A (Step 4, 2024)",
+    "bioequivalence": (
+        "ICH M13A (Step 4, 2024) + FDA Statistical Approaches to Establishing Bioequivalence "
+        "(May 2026)"
+    ),
 }

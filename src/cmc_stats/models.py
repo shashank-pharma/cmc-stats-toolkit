@@ -488,7 +488,7 @@ class StabilityResult(_Frozen):
     warnings: tuple[str, ...]
 
 
-# --- Bioequivalence inputs (ICH M13A, 2024; FDA BE statistics guidance) --------------------
+# --- Bioequivalence inputs (ICH M13A, 2024; FDA BE statistics guidance, May 2026) ---------
 
 
 class BeRecord(_Frozen):
@@ -533,7 +533,7 @@ class BeRecord(_Frozen):
 
 
 class BeInput(_Frozen):
-    """2x2 crossover bioequivalence input (ICH M13A; URS-BE-004 to 015).
+    """2x2 crossover bioequivalence input (ICH M13A; URS-BE-004 to 015, URS-BE-019).
 
     v1 supports only the 2x2 crossover (sequences TR and RT) with average-BE limits. The design
     and limits must be stated; there are no defaults. Records may be in any order.
@@ -567,8 +567,10 @@ class BeInput(_Frozen):
 
     @model_validator(mode="after")
     def _complete_crossover(self) -> Self:
-        """URS-BE-004, 008 to 014: a complete, consistent 2x2 crossover. Order matters: a
-        replicate layout is reported as such before it can look like a missing period."""
+        """URS-BE-004, 008 to 014, 019: a complete, consistent 2x2 crossover with at least 12
+        evaluable subjects (ICH M13A (2024), 2.2.3.1, p. 12). Order matters: a replicate layout
+        is reported as such before it can look like a missing period, and the residual-df check
+        (URS-BE-013) runs before the 12-subject rule."""
         recs = self.records
         for r in recs:  # URS-BE-004 (detected), URS-BE-010 (sequence label)
             if len(r.sequence) > 2:
@@ -638,6 +640,12 @@ class BeInput(_Frozen):
                 f"{n} subjects give residual degrees of freedom {df}; at least "
                 f"{criteria.BE_MIN_RESIDUAL_DF} required, so at least "
                 f"{criteria.BE_MIN_RESIDUAL_DF + 2} subjects are needed (project policy)"
+            )
+        # URS-BE-019: every subject here has both periods (URS-BE-008), so all are evaluable
+        if n < criteria.BE_MIN_EVALUABLE_SUBJECTS:
+            raise ValueError(
+                f"{n} evaluable subjects supplied; at least "
+                f"{criteria.BE_MIN_EVALUABLE_SUBJECTS} required (ICH M13A, 2024, 2.2.3.1)"
             )
 
         with_inf = [r.auc0inf is not None for r in recs]  # URS-BE-014

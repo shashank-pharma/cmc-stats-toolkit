@@ -1,25 +1,29 @@
-# Next session (written 2026-10-29, after v0.8.0, branch release/1.0.0, not pushed)
+# Next session (written 2026-11-03, after v0.9.0, branch release/1.0.0, pushed to origin)
 
-Done this session (decisions by Shashank, 2026-10-29; user checked the PDFs; see CHANGELOG 0.8.0):
-- PC-STAB-08 confirmed: ICH Q1A(R2) "Current Step 4 version dated 6 February 2003". Stability
-  stamp now "ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)"
-  (URS-STAB-026).
-- PC-DISS-05 confirmed: "three to four or more dissolution time points" is FDA 1997 section
-  V.A, p. 9 (URS-DISS-010). The warning no longer says "pending confirmation"; it is shown in
-  its own warning box rather than promoted under URS-UI-011.
-- PC-DISS-04 (still a known limitation): `tests/golden/r/dissolution_gold.R` reproduces
-  GOLD-DISS-001 from base R (R 4.6.1; f2 70.597718524, f1 5.572755418).
-  `uv run python tests/golden/r/merge_dissolution_gold.py` regenerated the JSON; `git diff
-  tests/golden/data` was empty. R writes 3 decimals, the committed precision (tolerance 0.001).
-  Note and URS-DISS-014 now say "cross-checked against base R; published example planned for
-  v1.1". There is still no bootstrap golden case. The GOLD-DISS-001 `source` field was then
-  reworded (separate commit; decided by Shashank) to name the R script and R 4.6.1; only that
-  field changed, expected values untouched.
-- Version 0.8.0 (pre-1.0 minor bump: `/dissolution` response gained `warnings`).
-- /verify PASS: 391 tests (10 golden), coverage 99.24%. /gxp-review and /validation-docs not run.
+Done this session (decisions by Shashank, 2026-11-03; the user confirmed the quotes, PDFs not
+reopened; see CHANGELOG 0.9.0 and docs/RELEASE-1.0.0.md):
+- FDA guidance recorded as "Statistical Approaches to Establishing Bioequivalence (May 2026)";
+  BE stamp is "ICH M13A (Step 4, 2024) + FDA Statistical Approaches to Establishing
+  Bioequivalence (May 2026)".
+- PC-BE-01 confirmed (2 decimals, FDA I.B footnote 6, p. 3) with known limitation: rounding
+  mode half up is this tool's choice (URS-BE-020).
+- PC-BE-02 confirmed (AUC0-inf decision-making, FDA II.C.2, p. 13) with known limitation: the
+  FDA ANDA PK-endpoints guidance in footnote 6 was not checked (URS-BE-021).
+- PC-BE-03 confirmed: M13A 2.2.3.1, 2.2.3.2, 2.2.4; FDA II.C.1.a; CVw formula from EMA 4.1.10.
+- PC-BE-04 known limitation: base R golden cases; Schutz et al. 2014 planned for v1.1
+  (URS-BE-022).
+- New URS-BE-019: fewer than 12 evaluable subjects refused (M13A 2.2.3.1, p. 12). No golden
+  or sample dataset had fewer than 12. The unit-test fixture and the UI BE template had 8, and
+  both gained dummy subjects S09-S12.
+- Version 0.9.0 (pre-1.0 minor bump: new refusal; not 1.0.0 because /gxp-review and
+  /validation-docs have not run).
 
-Still open for 1.0.0 (docs/RELEASE-1.0.0.md):
-1. BE: PC-BE-01..04, now against FDA text.
-Then: /gxp-review, /validation-docs.
+Register: every row in docs/RELEASE-1.0.0.md is confirmed or a known limitation.
+
+Still to do for 1.0.0:
+1. /gxp-review (no open issues).
+2. /validation-docs. The traceability matrix got targeted edits only (new rows URS-BE-019..022,
+   renamed tests, open-confirmations list); refresh every row's /verify date.
+3. Then decide on the 1.0.0 release (CHANGELOG entry must list every known limitation).
 Golden regeneration: uv run python tests/golden/r/merge_stability_gold.py and
 uv run python tests/golden/r/merge_dissolution_gold.py.

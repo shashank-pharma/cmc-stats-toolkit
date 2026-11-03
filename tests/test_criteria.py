@@ -15,16 +15,22 @@ def test_tost_alpha_is_derived_as_0_05_from_the_90_percent_ci() -> None:
 
 
 def test_ci_limits_rounded_half_up_to_two_decimals() -> None:
-    """URS-BE-016: two decimals, round half up (placeholder pending agency text)."""
+    """URS-BE-016, URS-BE-020: two decimals (FDA May 2026, I.B footnote 6); round half up is
+    this tool's choice (known limitation)."""
     assert criteria.BE_ROUND_DECIMALS == 2
     assert criteria.BE_ROUNDING_MODE == "ROUND_HALF_UP"
 
 
-def test_be_minimums_and_auc0inf_placeholder() -> None:
+def test_be_minimums_and_auc0inf_default() -> None:
     """URS-BE-012, URS-BE-013, URS-BE-014: project-policy minimums and AUC0-inf default."""
     assert criteria.BE_MIN_SUBJECTS_PER_SEQUENCE == 1
     assert criteria.BE_MIN_RESIDUAL_DF == 1
     assert criteria.BE_AUC0INF_DECISION_MAKING is True
+
+
+def test_be_minimum_evaluable_subjects_is_12() -> None:
+    """URS-BE-019: ICH M13A 2.2.3.1, p. 12: at least 12 evaluable subjects."""
+    assert criteria.BE_MIN_EVALUABLE_SUBJECTS == 12
 
 
 def test_dissolution_time_constants_match_15_minutes() -> None:

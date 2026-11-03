@@ -501,11 +501,17 @@ def test_prominent_notes_include_bootstrap_method_note() -> None:
     assert summary["bootstrap_lower"] == str(result.bootstrap.lower)
 
 
-def test_prominent_notes_be_rounding_placeholder() -> None:
-    """URS-UI-011: the BE rounding and AUC0-inf placeholders are surfaced."""
+def test_prominent_notes_include_be_known_limitations() -> None:
+    """URS-UI-011, URS-BE-020, 021, 022: the BE known-limitation notes are promoted, in order;
+    without AUC0-inf only the rounding and validation notes."""
     notes = ui.prominent_notes(be.assess_bioequivalence(be_golden("GOLD-BE-001")))
-    assert any("rounded" in n and "pending confirmation" in n for n in notes)
-    assert any("AUC0-inf" in n for n in notes)
+    assert notes == [
+        be.ROUNDING_LIMITATION_NOTE,
+        be.VALIDATION_LIMITATION_NOTE,
+        be.auc0inf_limitation_note(),
+    ]
+    no_inf = ui.prominent_notes(be.assess_bioequivalence(be_golden("GOLD-BE-003")))
+    assert no_inf == [be.ROUNDING_LIMITATION_NOTE, be.VALIDATION_LIMITATION_NOTE]
 
 
 def test_ordinary_notes_not_promoted() -> None:

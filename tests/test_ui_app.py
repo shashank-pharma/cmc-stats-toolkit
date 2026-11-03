@@ -11,7 +11,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from cmc_stats import ui_helpers
-from cmc_stats.core import dissolution, stability
+from cmc_stats.core import be, dissolution, stability
 from cmc_stats.models import DISCLAIMER
 
 APP = str(Path(__file__).parents[1] / "src" / "cmc_stats" / "ui.py")
@@ -74,8 +74,9 @@ def test_stability_run_shows_conclusion_tables_chart_and_file_hash(app: AppTest)
     assert any(digest in c.value for c in tab.caption)
 
 
-def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
-    """URS-UI-011: BE placeholder notes appear in warning boxes."""
+def test_be_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
+    """URS-UI-011, URS-BE-020, 021, 022: the BE known-limitation notes appear in warning boxes
+    (the template has AUC0-inf)."""
     app.checkbox(key="example_be").check()
     app.selectbox(key="be_design").set_value("2x2_crossover")
     app.selectbox(key="be_limits").set_value("average")
@@ -83,7 +84,10 @@ def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
     app.button(key="run_be").click().run()
     assert not app.exception
     tab = app.tabs[TABS["be"]]
-    assert any("pending confirmation" in w.value for w in tab.warning)
+    shown = [w.value for w in tab.warning]
+    assert be.ROUNDING_LIMITATION_NOTE in shown
+    assert be.VALIDATION_LIMITATION_NOTE in shown
+    assert be.auc0inf_limitation_note() in shown
     assert any("Bioequivalent" in m.value for m in tab.markdown)
     assert tab.get("plotly_chart")
 

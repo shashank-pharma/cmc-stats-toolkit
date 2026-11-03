@@ -9,15 +9,17 @@
 # T/R ratio, generated with set.seed() and rounded to 2 decimals BEFORE analysis, so the JSON
 # input is exactly what was analysed.
 #
-# Method (2x2 crossover, ICH M13A (2024); FDA BE statistics guidance, as in ich-stats-rules):
+# Method (2x2 crossover, ICH M13A (2024); FDA BE statistics guidance (May 2026), as in
+# ich-stats-rules):
 # - lm(log(y) ~ sequence + subject + period + treatment); subject IDs are unique, so subject
 #   is nested in sequence (type I anova: subject df = n - 2).
 # - Treatment levels c("R", "T"): coefficient treatmentT = mean log T - mean log R.
 # - 90% CI: confint(level = 0.90); PE and CI = 100 * exp(.).
 # - TOST: p_lower = P(t > (d - ln 0.80) / se), p_upper = P(t < (d - ln 1.25) / se), df resid.
 # - CVw = 100 * sqrt(exp(MSE) - 1).
-# - Rounded limits: half up, floor(100 x + 0.5) / 100 (placeholder rule, pending confirmation
-#   against the target agency text); these cases are far from the rounding boundary.
+# - Rounded limits: 2 decimals (FDA (May 2026) I.B footnote 6), half up, floor(100 x + 0.5) /
+#   100 (no guidance states the mode: known limitation, URS-BE-020); these cases are far from
+#   the rounding boundary.
 
 num <- function(x) sprintf("%.8f", x)
 half_up <- function(x) floor(100 * x + 0.5) / 100

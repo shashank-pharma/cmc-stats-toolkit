@@ -86,6 +86,6 @@ def stability(data: StabilityInput, timestamp: Timestamp) -> StabilityResult:
 
 @app.post("/be", response_model=BeResult)
 def bioequivalence(data: BeInput, timestamp: Timestamp) -> BeResult:
-    """URS-API-004: ``assess_bioequivalence`` (ICH M13A, 2024; FDA BE statistics guidance).
+    """URS-API-004: ``assess_bioequivalence`` (ICH M13A, 2024; FDA, May 2026).
     Body: a ``BeInput``."""
     return assess_bioequivalence(data, timestamp=timestamp)

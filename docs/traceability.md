@@ -3,8 +3,9 @@
 Updated by the `/validation-docs` skill. Every requirement needs at least one test.
 
 Test IDs: `GOLD-*` are golden cases in `tests/golden/data/`; `test_<module>::<name>` are tests in
-`tests/`. Last /verify for every row below: **PASS 2026-10-29, v0.8.0** (ruff
-format, ruff check, mypy strict, pytest 391 passed, coverage 99.24% measured on `src/cmc_stats`).
+`tests/`. Last /verify: **PASS 2026-11-03, v0.9.0** (ruff format, ruff check, mypy
+strict, pytest 397 passed, 10 golden, coverage 99.25% measured on `src/cmc_stats`). Row dates
+of 2026-10-29 are refreshed by the next /validation-docs run.
 
 Sample-data pack (URS-GEN-004): `sample_data/` holds 8 dummy CSVs in the UI template format.
 Expected results come from the golden R outputs (stability), R's own output from
@@ -18,7 +19,8 @@ test_golden_stability::test_stability_golden and test_stability_golden_crosschec
 
 Bioequivalence golden cases GOLD-BE-001..003 are independent R output (base `lm`/`anova`/
 `confint`/`pt`, `tests/golden/r/be_gold.R`) on dummy data generated with `set.seed()` (seed and
-selection rule recorded in each file); a published example is pending. Each is run by
+selection rule recorded in each file); no published example is used (known limitation,
+URS-BE-022; Schutz et al. 2014 planned for v1.1). Each is run by
 test_golden_be::test_be_golden.
 
 Open confirmations (provisional until the user checks the guideline text):
@@ -34,9 +36,16 @@ Open confirmations (provisional until the user checks the guideline text):
 - Confirmed 2026-10-29 (not open): ICH Q1A(R2) Step 4 date 6 February 2003 in the stability
   stamp (URS-STAB-026, PC-STAB-08); "three to four or more dissolution time points" is FDA
   1997 section V.A, p. 9 (URS-DISS-010, PC-DISS-05).
-- BE rounding rule (round half up, BE_ROUNDING_MODE) for the target agency: URS-BE-016.
-- Whether AUC0-inf is decision-making (BE_AUC0INF_DECISION_MAKING; FDA vs EMA): URS-BE-014.
-- ICH M13A and FDA BE statistics guidance section numbers for the BE docstrings.
+- Confirmed 2026-11-03 (not open; Shashank): BE 2 decimals per FDA, Statistical Approaches to
+  Establishing Bioequivalence (May 2026), I.B footnote 6, p. 3 (URS-BE-016, PC-BE-01);
+  AUC0-inf decision-making per FDA (May 2026) II.C.2, p. 13 (URS-BE-014, PC-BE-02); ICH M13A
+  2.2.3.1, 2.2.3.2, 2.2.4 and FDA II.C.1.a citations, CVw formula from EMA 4.1.10 (PC-BE-03);
+  at least 12 evaluable subjects, ICH M13A 2.2.3.1, p. 12 (URS-BE-019).
+- Known limitations (recorded 2026-11-03, not open): no guidance states the CI rounding mode,
+  half up is this tool's choice (URS-BE-020); the FDA ANDA PK-endpoints guidance cited in FDA
+  footnote 6 was not checked (URS-BE-021); BE golden cases are base R output, published
+  example (Schutz et al. 2014) planned for v1.1 (URS-BE-022).
+- No open confirmations remain. /gxp-review and /validation-docs are still to run for 1.0.0.
 
 | Requirement | Implemented in | Tests | Last /verify |
 |---|---|---|---|
@@ -96,13 +105,17 @@ Open confirmations (provisional until the user checks the guideline text):
 | URS-BE-009 | models.BeInput._complete_crossover | test_be::test_duplicate_subject_period_rejected | PASS 2026-10-29 |
 | URS-BE-010 | models.BeInput._complete_crossover | test_be::test_unknown_sequence_rejected, test_treatment_not_matching_sequence_rejected | PASS 2026-10-29 |
 | URS-BE-011 | models.BeInput._complete_crossover | test_be::test_subject_in_both_sequences_rejected | PASS 2026-10-29 |
-| URS-BE-012 | criteria.BE_MIN_SUBJECTS_PER_SEQUENCE; models.BeInput._complete_crossover; core.be.analyse_parameter (n_tr, n_rt) | GOLD-BE-003 (7/5); test_criteria::test_be_minimums_and_auc0inf_placeholder; test_be::test_unbalanced_sequences_accepted_and_counted, test_empty_sequence_rejected | PASS 2026-10-29 |
-| URS-BE-013 | criteria.BE_MIN_RESIDUAL_DF; models.BeInput._complete_crossover | test_criteria::test_be_minimums_and_auc0inf_placeholder; test_be::test_residual_df_below_one_rejected, test_three_subjects_give_one_residual_df | PASS 2026-10-29 |
-| URS-BE-014 | criteria.BE_AUC0INF_DECISION_MAKING; models.BeRecord, BeInput._complete_crossover; core.be.analyse_parameter, assess_bioequivalence | GOLD-BE-003 (no AUC0-inf); test_criteria::test_be_minimums_and_auc0inf_placeholder; test_be::test_auc0inf_absent_gives_two_parameters, test_analysing_absent_auc0inf_is_refused, test_auc0inf_present_is_analysed_and_decides, test_auc0inf_reported_but_not_deciding_when_placeholder_false, test_partial_auc0inf_rejected_listing_records (decision-making placeholder pending confirmation) | PASS 2026-10-29 |
+| URS-BE-012 | criteria.BE_MIN_SUBJECTS_PER_SEQUENCE; models.BeInput._complete_crossover; core.be.analyse_parameter (n_tr, n_rt) | GOLD-BE-003 (7/5); test_criteria::test_be_minimums_and_auc0inf_default; test_be::test_unbalanced_sequences_accepted_and_counted, test_empty_sequence_rejected | PASS 2026-10-29 |
+| URS-BE-013 | criteria.BE_MIN_RESIDUAL_DF; models.BeInput._complete_crossover | test_criteria::test_be_minimums_and_auc0inf_default; test_be::test_residual_df_below_one_rejected, test_three_subjects_pass_the_df_check_then_meet_the_12_subject_rule | PASS 2026-10-29 |
+| URS-BE-014 | criteria.BE_AUC0INF_DECISION_MAKING; models.BeRecord, BeInput._complete_crossover; core.be.analyse_parameter, assess_bioequivalence | GOLD-BE-003 (no AUC0-inf); test_criteria::test_be_minimums_and_auc0inf_default; test_be::test_auc0inf_absent_gives_two_parameters, test_analysing_absent_auc0inf_is_refused, test_auc0inf_present_is_analysed_and_decides, test_auc0inf_reported_but_not_deciding_when_flag_false, test_partial_auc0inf_rejected_listing_records, test_auc0inf_limitation_only_when_auc0inf_is_analysed (FDA (May 2026) II.C.2, p. 13) | PASS 2026-10-29 |
 | URS-BE-015 | models.BeRecord.subject (min_length=1), _no_padding; BeInput._complete_crossover (case clash); model config allow_inf_nan=False | test_be::test_non_finite_value_rejected (3 cases), test_empty_subject_rejected, test_padded_subject_rejected (3 cases), test_subject_ids_differing_only_by_case_rejected | PASS 2026-10-29 |
-| URS-BE-016 | criteria.BE_ROUND_DECIMALS, BE_ROUNDING_MODE; core.be.be_decision | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_criteria::test_ci_limits_rounded_half_up_to_two_decimals; test_be::test_decision_uses_limits_rounded_half_up (6 cases), test_rounding_uses_exact_binary_value, test_result_keeps_unrounded_and_rounded_limits, test_note_when_rounded_ci_and_tost_disagree (rounding mode pending confirmation) | PASS 2026-10-29 |
+| URS-BE-016 | criteria.BE_ROUND_DECIMALS, BE_ROUNDING_MODE; core.be.be_decision | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_criteria::test_ci_limits_rounded_half_up_to_two_decimals; test_be::test_decision_uses_limits_rounded_half_up (6 cases), test_rounding_uses_exact_binary_value, test_result_keeps_unrounded_and_rounded_limits, test_note_when_rounded_ci_and_tost_disagree (2 decimals: FDA (May 2026) I.B footnote 6; mode: known limitation, URS-BE-020) | PASS 2026-10-29 |
 | URS-BE-017 | core.be.analyse_parameter, assess_bioequivalence; models.AnovaRow, BeParameterResult, BeResult | GOLD-BE-001, GOLD-BE-002, GOLD-BE-003; test_be::test_anova_table_terms_ss_and_df, test_result_reports_every_reviewer_value, test_result_keeps_unrounded_and_rounded_limits, test_note_when_rounded_ci_and_tost_disagree, test_no_rounding_note_away_from_boundary, test_auc0inf_present_is_analysed_and_decides, test_records_kept_as_entered | PASS 2026-10-29 |
 | URS-BE-018 | models.BeRecord._positive | test_be::test_auc0inf_below_auc0t_rejected, test_auc0inf_equal_to_auc0t_accepted | PASS 2026-10-29 |
+| URS-BE-019 | criteria.BE_MIN_EVALUABLE_SUBJECTS; models.BeInput._complete_crossover; ui_helpers.template_csv (12-subject BE template) | test_criteria::test_be_minimum_evaluable_subjects_is_12; test_be::test_eleven_subjects_rejected_naming_the_count, test_twelve_subjects_accepted, test_subject_missing_a_period_is_rejected_not_counted_as_unevaluable, test_three_subjects_pass_the_df_check_then_meet_the_12_subject_rule | PASS 2026-11-03 |
+| URS-BE-020 | core.be.ROUNDING_LIMITATION_NOTE, assess_bioequivalence | test_be::test_every_result_carries_rounding_and_validation_limitations; test_ui_helpers::test_prominent_notes_include_be_known_limitations; test_ui_app::test_be_run_shows_known_limitations_in_warning_box | PASS 2026-11-03 |
+| URS-BE-021 | core.be.auc0inf_limitation_note, assess_bioequivalence | test_be::test_auc0inf_limitation_only_when_auc0inf_is_analysed, test_auc0inf_reported_but_not_deciding_when_flag_false; test_ui_helpers::test_prominent_notes_include_be_known_limitations; test_ui_app::test_be_run_shows_known_limitations_in_warning_box | PASS 2026-11-03 |
+| URS-BE-022 | core.be.VALIDATION_LIMITATION_NOTE, assess_bioequivalence | test_be::test_every_result_carries_rounding_and_validation_limitations; test_ui_helpers::test_prominent_notes_include_be_known_limitations; test_ui_app::test_be_run_shows_known_limitations_in_warning_box | PASS 2026-11-03 |
 | URS-API-001 | api.health | test_api::test_health_returns_version_and_disclaimer | PASS 2026-10-29 |
 | URS-API-002 | api.dissolution, get_timestamp | test_api::test_dissolution_mean_f2_matches_core, test_dissolution_bootstrap_matches_core | PASS 2026-10-29 |
 | URS-API-003 | api.stability, get_timestamp | test_api::test_stability_matches_core (GOLD-STAB-001..003 inputs) | PASS 2026-10-29 |
@@ -119,7 +132,7 @@ Open confirmations (provisional until the user checks the guideline text):
 | URS-UI-008 | ui_helpers.REQUIRED_SETTINGS, missing_settings, run_analysis; ui.settings_for, render_tab | test_ui_helpers::test_missing_settings_lists_every_unset_item, test_empty_text_and_false_are_handled_correctly, test_bootstrap_settings_together_or_not_at_all (4 cases), test_run_analysis_dissolution_with_and_without_bootstrap, test_run_analysis_refuses_half_bootstrap_settings (2 cases); test_ui_app::test_run_disabled_until_file_and_settings_given, test_dissolution_run_without_bootstrap | PASS 2026-10-29 |
 | URS-UI-009 | ui_helpers.run_analysis; ui.render_tab (st.error) | test_ui_helpers::test_run_analysis_passes_model_errors_through, test_dissolution_model_rules_still_apply; test_ui_app::test_unsupported_choice_shows_error_and_no_result, test_refrigerated_storage_shows_not_supported_error | PASS 2026-10-29 |
 | URS-UI-010 | ui.render_tab (st.info) | test_ui_app::test_three_tabs_each_with_disclaimer | PASS 2026-10-29 |
-| URS-UI-011 | ui_helpers.prominent_notes; ui.show_result (st.warning) | test_ui_helpers::test_prominent_notes_skip_confirmed_stability_notes, test_prominent_notes_include_known_limitations, test_prominent_notes_include_bootstrap_method_note, test_prominent_notes_be_rounding_placeholder, test_ordinary_notes_not_promoted; test_ui_app::test_be_run_shows_pending_confirmation_warning, test_stability_run_shows_known_limitations_in_warning_box, test_two_batch_stability_run_shows_q1a_warning | PASS 2026-10-29 |
+| URS-UI-011 | ui_helpers.prominent_notes; ui.show_result (st.warning) | test_ui_helpers::test_prominent_notes_skip_confirmed_stability_notes, test_prominent_notes_include_known_limitations, test_prominent_notes_include_bootstrap_method_note, test_prominent_notes_include_be_known_limitations, test_ordinary_notes_not_promoted; test_ui_app::test_be_run_shows_known_limitations_in_warning_box, test_stability_run_shows_known_limitations_in_warning_box, test_two_batch_stability_run_shows_q1a_warning | PASS 2026-10-29 |
 | URS-UI-012 | ui_helpers.dissolution_tables, stability_tables, be_tables; ui.show_table (display format only) | test_ui_helpers::test_stability_tables_full_precision, test_be_tables_full_precision, test_dissolution_tables_full_precision, test_prominent_notes_include_bootstrap_method_note (summary table); test_ui_app::test_stability_run_shows_conclusion_tables_chart_and_file_hash | PASS 2026-10-29 |
 | URS-UI-013 | ui_helpers.dissolution_chart, stability_chart, be_chart; ui.show_result | test_ui_helpers::test_dissolution_chart_is_two_lines, test_stability_chart_lines_and_bound, test_be_chart_bars_with_ci_and_limits; test_ui_app::test_stability_run_shows_conclusion_tables_chart_and_file_hash, test_dissolution_run_without_bootstrap | PASS 2026-10-29 |
 | URS-UI-014 | ui_helpers.TEMPLATE_WARNING, template_source; ui.choose_source, show_result | test_ui_helpers::test_template_source_is_named_after_the_template (3 cases), test_template_run_records_template_name; test_ui_app::test_template_data_result_carries_dummy_data_warning (3 cases) | PASS 2026-10-29 |

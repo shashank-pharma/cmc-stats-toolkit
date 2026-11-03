@@ -73,7 +73,7 @@ refrigerated, freezer and significant change at accelerated (URS-STAB-022, 023).
   URS-DISS-012). Warn when fewer than 3 points remain after the 85% cut-off ("three to four
   or more dissolution time points"; FDA 1997 section V.A, p. 9, PC-DISS-05, URS-DISS-010).
 
-## 3. Bioequivalence, 2x2 crossover (ICH M13A, 2024; FDA BE statistics guidance)
+## 3. Bioequivalence, 2x2 crossover (ICH M13A, 2024; FDA BE statistics guidance, May 2026)
 
 - Log-transform AUC0-t, AUC0-inf and Cmax.
 - ANOVA terms: sequence, subject nested in sequence, period, treatment.
@@ -81,8 +81,20 @@ refrigerated, freezer and significant change at accelerated (URS-STAB-022, 023).
 - Bioequivalent when the 90% CI lies within 80.00-125.00% for each required parameter.
   Equivalent to two one-sided tests at alpha 0.05; report both TOST p-values.
 - Report within-subject CV = sqrt(exp(MSE) - 1) * 100.
-- Compare CI limits after rounding to two decimals; confirm the rounding rule for the target
-  agency and store it in criteria.py.
+- Compare CI limits after rounding to two decimals; the rounding rule is stored in criteria.py.
+- Refuse fewer than 12 evaluable subjects (ICH M13A 2.2.3.1, p. 12; URS-BE-019).
+- Sources (Shashank, 2026-11-03; quotes confirmed by the user). FDA guidance: "Statistical
+  Approaches to Establishing Bioequivalence (May 2026)". M13A 2.2.3.1, pp. 11-12 (90% CI
+  equivalent to TOST at 5%, log transformation); 2.2.3.2, p. 12 (sequence, subject within
+  sequence, period, formulation); 2.2.4, p. 13 (80.00-125.00%); FDA II.C.1.a, p. 13 (TOST,
+  Schuirmann 1987). Rounding: FDA I.B footnote 6, p. 3, "the rounded confidence interval value
+  should be at least 80.00 percent and not more than 125.00 percent"; two decimals; no guidance
+  states the mode, so round half up is this tool's choice (known limitation, PC-BE-01,
+  URS-BE-020). AUC0-inf is decision-making: FDA II.C.2, p. 13 (PC-BE-02); M13A 2.2.2.2 and
+  EMA 4.1.8 differ (notes only); the FDA ANDA PK-endpoints guidance in footnote 6 was not
+  checked (known limitation, URS-BE-021). CVw formula: EMA 4.1.10, p. 17/27 only (highly
+  variable drug context; PC-BE-03). Golden cases are base R output; published example
+  (Schutz et al. 2014) planned for v1.1 (known limitation, PC-BE-04, URS-BE-022).
 - Out of scope for version 1: replicate designs, reference-scaled limits (highly variable
   and narrow therapeutic index drugs), parallel designs. Refuse these with a clear message.
 

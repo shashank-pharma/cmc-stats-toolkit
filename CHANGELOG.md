@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.9.0 - 2026-11-03
+Behaviour changes: `BeInput` now refuses fewer than 12 evaluable subjects (ICH M13A 2.2.3.1,
+p. 12; URS-BE-019). 0.8.0 accepted 3 or more, so BE input or `/be` requests with 3 to 11
+subjects are now rejected. The BE guideline stamp changes from "ICH M13A (Step 4, 2024)" to
+"ICH M13A (Step 4, 2024) + FDA Statistical Approaches to Establishing Bioequivalence (May
+2026)". The BE result notes are replaced by known-limitation notes. The downloadable BE
+template gains 4 dummy subjects (S09-S12, now 12), so its file hash changes. Minor bump under
+the pre-1.0 policy. It is not 1.0.0: every register item is now closed, but `/gxp-review` and
+`/validation-docs` have not been run. No calculated result changes. The CI, TOST, CVw,
+rounding and AUC0-inf logic is untouched, and no golden expected value was edited
+(GOLD-BE-001..003 and both BE sample files already had 12 or more subjects).
+
+### Changed (decisions by Shashank, 2026-11-03; quotes confirmed by the user)
+- PC-BE-01 confirmed: two decimals per FDA, Statistical Approaches to Establishing
+  Bioequivalence (May 2026), I.B footnote 6, p. 3 (URS-BE-016). EMA 4.1.8 is a note only.
+- PC-BE-02 confirmed: AUC0-inf stays decision-making per FDA (May 2026) II.C.2, p. 13
+  (URS-BE-014). ICH M13A 2.2.2.2 and EMA 4.1.8 differ (notes only).
+- PC-BE-03 confirmed: ICH M13A 2.2.3.1, 2.2.3.2 and 2.2.4, and FDA II.C.1.a, cited in
+  `criteria.py`, `core/be.py` and URS-BE-001..003. The CVw formula is cited to EMA 4.1.10,
+  p. 17/27 (highly variable drug context), the only source that gives it.
+
+### Added
+- URS-BE-019: fewer than 12 evaluable subjects is refused, giving the count, the minimum and
+  the source (`criteria.BE_MIN_EVALUABLE_SUBJECTS`). The residual-df check (URS-BE-013) runs
+  first and still reports 1 or 2 subjects as a df problem.
+
+### Known limitations (decided by Shashank, 2026-11-03)
+- PC-BE-01: no guidance states the CI rounding mode, so round half up is this tool's choice
+  (URS-BE-020).
+- PC-BE-02: the FDA ANDA PK-endpoints guidance cited in FDA footnote 6 was not checked
+  (URS-BE-021).
+- PC-BE-04: BE golden cases are base R output on seeded dummy data. A published example
+  (Schutz et al. 2014) is planned for v1.1 (URS-BE-022).
+Every affected BE result carries these as notes, shown in the warning box (URS-UI-011).
+
+### Still open for 1.0.0
+No register items. `/gxp-review` and `/validation-docs` still have to run.
+
 ## 0.8.0 - 2026-10-29
 Behaviour changes: the stability guideline stamp changes from "ICH Q1E (Step 4, 2003)" to
 "ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)" (URS-STAB-026).

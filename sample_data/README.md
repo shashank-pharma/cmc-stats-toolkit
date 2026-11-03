@@ -80,6 +80,12 @@ for both). Expected rounded 90% CIs are R's own output.
 | `be_24_subjects_cv20.csv` | 24 (12/12) | 20% | 88.05-105.94; 94.82-110.92; 94.57-110.52 | **bioequivalent** |
 | `be_12_subjects_cv45.csv` | 12 (6/6) | 45% | 61.22-99.08; 59.27-99.79; 60.22-99.81 | **not bioequivalent** |
 
-The CI rounding rule (half up) and whether AUC0-inf counts towards the decision are
-placeholders pending confirmation against the target agency text, so the app shows them as
-warnings.
+Both files have at least 12 subjects, the minimum the tool accepts (ICH M13A 2.2.3.1, p. 12;
+URS-BE-019).
+
+Known limitations shown in the warning box on every BE result (both files): no guidance states
+the CI rounding mode, so rounding half up to 2 decimals is this tool's choice (FDA, Statistical
+Approaches to Establishing Bioequivalence (May 2026), I.B footnote 6); BE golden cases are base
+R output, with a published example (Schutz et al. 2014) planned for v1.1. Both files have
+AUC0-inf, so a third note says AUC0-inf is decision-making (FDA II.C.2, p. 13) and that the FDA
+ANDA PK-endpoints guidance cited in footnote 6 was not checked.

@@ -1,10 +1,12 @@
 """Average bioequivalence for a 2x2 crossover: log-scale ANOVA, 90% CI of the GMR, TOST, CVw.
 
-Rules follow ICH M13A (2024) and the FDA BE statistics guidance, as summarised in the
-ich-stats-rules skill. v1 covers the 2x2 crossover (sequences TR and RT) with average-BE limits
-80.00-125.00%; replicate, parallel and reference-scaled analyses are refused by ``BeInput``.
-All values are kept at full precision; CI limits are rounded only for the acceptance decision
-(round half up, a placeholder pending confirmation against the target agency text).
+Rules follow ICH M13A (2024) and FDA, Statistical Approaches to Establishing Bioequivalence
+(May 2026), as summarised in the ich-stats-rules skill (PC-BE-01..03). v1 covers the 2x2
+crossover (sequences TR and RT) with average-BE limits 80.00-125.00% (M13A 2.2.4, p. 13);
+replicate, parallel and reference-scaled analyses are refused by ``BeInput``. All values are
+kept at full precision; CI limits are rounded to two decimals only for the acceptance decision
+(FDA (May 2026) I.B footnote 6, p. 3). No guidance states the rounding mode; round half up is
+this tool's choice (known limitation, URS-BE-020).
 
 Design columns, added in this order for the sequential (type I) ANOVA:
 intercept | sequence (RT) | subject within sequence (n - 2) | period (2) | treatment (T).
@@ -32,6 +34,41 @@ from cmc_stats.models import (
 )
 
 TERMS = ("sequence", "subject(sequence)", "period", "treatment")
+
+ROUNDING_LIMITATION_NOTE = (
+    "Known limitation: FDA, Statistical Approaches to Establishing Bioequivalence (May 2026), "
+    'I.B footnote 6, p. 3, says "the rounded confidence interval value should be at least '
+    '80.00 percent and not more than 125.00 percent" (EMA 4.1.8: "when rounded to two decimal '
+    'places"). No guidance states the rounding mode; rounding the 90% CI limits half up to 2 '
+    "decimals is this tool's choice."
+)
+VALIDATION_LIMITATION_NOTE = (
+    "Known limitation: the bioequivalence calculation is checked against independent base R "
+    "output on seeded dummy data (GOLD-BE-001..003, tests/golden/r/be_gold.R), not against a "
+    "published worked example. A published example (Schutz et al. 2014) is planned for v1.1."
+)
+
+
+def auc0inf_limitation_note() -> str:
+    """Known-limitation note on AUC0-inf as a decision parameter (URS-BE-014, URS-BE-021).
+
+    FDA, Statistical Approaches to Establishing Bioequivalence (May 2026), II.C.2, p. 13;
+    ICH M13A (2024) 2.2.2.2, p. 11 and EMA 4.1.8 are notes only. Reads
+    ``BE_AUC0INF_DECISION_MAKING`` at call time.
+    """
+    role = (
+        "AUC0-inf is decision-making (BE_AUC0INF_DECISION_MAKING = True)"
+        if criteria.BE_AUC0INF_DECISION_MAKING
+        else "AUC0-inf is reported but not decision-making (BE_AUC0INF_DECISION_MAKING = False)"
+    )
+    return (
+        f"Known limitation: {role}. FDA, Statistical Approaches to Establishing Bioequivalence "
+        '(May 2026), II.C.2, p. 13, is titled "Statistical Information and Implementation of '
+        'Criteria for PK Measures (AUC0-t, AUC0-∞, and Cmax)". ICH M13A 2.2.2.2 (p. 11) lists '
+        "AUC(0-inf) as an additional parameter, not primary, and EMA 4.1.8 analyses only "
+        "AUC(0-t) and Cmax. The FDA ANDA PK-endpoints guidance cited in footnote 6 was not "
+        "checked."
+    )
 
 
 def _tost_alpha() -> float:
@@ -91,8 +128,9 @@ def _fit(data: BeInput, parameter: BeParameter) -> tuple[OlsFit, tuple[AnovaRow,
 def gmr_interval(diff_log: float, se_log: float, df: int) -> tuple[float, float, float]:
     """Point estimate and 90% CI of the T/R geometric mean ratio, in % (URS-BE-001).
 
-    ICH M13A (2024): PE = 100 exp(d); CI = 100 exp(d -/+ t((1 + 0.90) / 2, df) * SE), with d
-    the T - R difference of log means from the crossover ANOVA.
+    ICH M13A (2024), 2.2.3.1, pp. 11-12 (90% CI on log-transformed data): PE = 100 exp(d);
+    CI = 100 exp(d -/+ t((1 + 0.90) / 2, df) * SE), with d the T - R difference of log means
+    from the crossover ANOVA.
     """
     t = float(sps.t.ppf((1.0 + criteria.BE_CI_LEVEL) / 2.0, df))
     return (
@@ -105,9 +143,10 @@ def gmr_interval(diff_log: float, se_log: float, df: int) -> tuple[float, float,
 def tost_p_values(diff_log: float, se_log: float, df: int) -> tuple[float, float]:
     """Two one-sided test p-values against ln(0.80) and ln(1.25) (URS-BE-003).
 
-    FDA BE statistics guidance; ICH M13A (2024): p_lower = P(T > (d - ln 0.80) / SE) and
-    p_upper = P(T < (d - ln 1.25) / SE) with df residual df. Each test is at alpha 0.05,
-    derived as (1 - BE_CI_LEVEL) / 2.
+    FDA, Statistical Approaches to Establishing Bioequivalence (May 2026), II.C.1.a, p. 13
+    (TOST, Schuirmann 1987); ICH M13A (2024), 2.2.3.1, pp. 11-12 (equivalent to the 90% CI):
+    p_lower = P(T > (d - ln 0.80) / SE) and p_upper = P(T < (d - ln 1.25) / SE) with df
+    residual df. Each test is at alpha 0.05, derived as (1 - BE_CI_LEVEL) / 2.
 
     Raises:
         ValueError: SE is not positive.
@@ -125,7 +164,8 @@ def tost_p_values(diff_log: float, se_log: float, df: int) -> tuple[float, float
 def cv_within_pct(mse: float) -> float:
     """Within-subject CV in % from the log-scale residual MSE (URS-BE-003).
 
-    FDA BE statistics guidance: CVw = 100 * sqrt(exp(MSE) - 1).
+    CVw = 100 * sqrt(exp(MSE) - 1). Formula source: EMA 4.1.10, p. 17/27, where it appears
+    in the highly variable drug context; neither ICH M13A nor FDA (May 2026) gives it (PC-BE-03).
     """
     return 100.0 * math.sqrt(math.exp(mse) - 1.0)
 
@@ -133,10 +173,12 @@ def cv_within_pct(mse: float) -> float:
 def be_decision(lower_pct: float, upper_pct: float) -> tuple[float, float, bool]:
     """Round the CI limits, then compare with 80.00-125.00% inclusive (URS-BE-001, 016).
 
-    ICH M13A (2024) acceptance range; limits rounded to ``BE_ROUND_DECIMALS`` with
-    ``BE_ROUNDING_MODE`` (round half up: placeholder, pending confirmation against the target
-    agency text). Rounding uses the exact binary value of each limit, and the comparison is
-    done in decimal arithmetic.
+    ICH M13A (2024), 2.2.4, p. 13 (acceptance range); FDA, Statistical Approaches to
+    Establishing Bioequivalence (May 2026), I.B footnote 6, p. 3 (the rounded CI is compared).
+    Limits are rounded to ``BE_ROUND_DECIMALS`` with ``BE_ROUNDING_MODE``; no guidance states
+    the mode, so round half up is this tool's choice (known limitation, URS-BE-020). Rounding
+    uses the exact binary value of each limit, and the comparison is done in decimal
+    arithmetic.
     """
     quantum = Decimal(1).scaleb(-criteria.BE_ROUND_DECIMALS)
     mode = criteria.BE_ROUNDING_MODE
@@ -153,10 +195,11 @@ def _decision_making(parameter: BeParameter) -> bool:
 def analyse_parameter(data: BeInput, parameter: BeParameter) -> BeParameterResult:
     """Log-scale crossover ANOVA and BE assessment for one parameter (URS-BE-001 to 003, 017).
 
-    ICH M13A (2024); FDA BE statistics guidance. Terms: sequence, subject(sequence), period,
-    treatment. Reports the type I ANOVA table, the T - R log difference and SE, PE and 90% CI
-    (full precision and rounded), the decision, both TOST p-values and CVw. Adds a note when the
-    rounded-CI decision and TOST at alpha 0.05 disagree (possible only at the rounding edge).
+    ICH M13A (2024), 2.2.3.2, p. 12: terms sequence, subject(sequence), period, treatment
+    (formulation); 2.2.3.1, pp. 11-12: log-transformed data, 90% CI. Reports the type I ANOVA
+    table, the T - R log difference and SE, PE and 90% CI (full precision and rounded), the
+    decision, both TOST p-values and CVw. Adds a note when the rounded-CI decision and TOST at
+    alpha 0.05 disagree (possible only at the rounding edge).
 
     Raises:
         ValueError: the parameter is not supplied, or the residual error is zero.
@@ -174,8 +217,8 @@ def analyse_parameter(data: BeInput, parameter: BeParameter) -> BeParameterResul
         notes.append(
             f"Rounded CI limits {lo_r:.2f}-{hi_r:.2f} {'pass' if ok else 'fail'} but TOST at "
             f"alpha {alpha:.2f} {'passes' if tost_ok else 'fails'} (unrounded limits "
-            f"{lo}-{hi}); the decision follows the rounded-CI rule ({criteria.BE_ROUNDING_MODE}, "
-            "pending confirmation against the target agency text)."
+            f"{lo}-{hi}); the decision follows the rounded-CI rule ({criteria.BE_ROUNDING_MODE}; "
+            "no guidance states the rounding mode, a known limitation)."
         )
     subjects = {r.subject: r.sequence for r in data.records}
     return BeParameterResult(
@@ -210,10 +253,12 @@ def assess_bioequivalence(
 ) -> BeResult:
     """Average bioequivalence of a 2x2 crossover (URS-BE-001 to 018, URS-GEN-001 to 003).
 
-    ICH M13A (2024); FDA BE statistics guidance. Analyses Cmax and AUC0-t, and AUC0-inf when
-    supplied. Bioequivalent when every decision-making parameter's rounded 90% CI lies within
-    80.00-125.00%. Whether AUC0-inf is decision-making is ``BE_AUC0INF_DECISION_MAKING``
-    (placeholder; agencies differ, pending confirmation against the target agency text).
+    ICH M13A (2024); FDA, Statistical Approaches to Establishing Bioequivalence (May 2026).
+    Analyses Cmax and AUC0-t, and AUC0-inf when supplied. Bioequivalent when every
+    decision-making parameter's rounded 90% CI lies within 80.00-125.00%. AUC0-inf is
+    decision-making (``BE_AUC0INF_DECISION_MAKING``; FDA (May 2026) II.C.2, p. 13). Every
+    result carries the rounding and validation known-limitation notes (URS-BE-020, 022), and
+    the AUC0-inf note when it is analysed (URS-BE-021).
     ``source_files`` (raw uploads the data came from) are recorded in the metadata only.
     """
     metadata = make_metadata(
@@ -230,21 +275,9 @@ def assess_bioequivalence(
     bioequivalent = all(r.within_limits for r in deciding)
 
     lo, hi = criteria.BE_LOWER_PCT, criteria.BE_UPPER_PCT
-    notes = [
-        f"90% CI limits rounded {criteria.BE_ROUNDING_MODE} to {criteria.BE_ROUND_DECIMALS} "
-        f"decimals before comparison with {lo:.2f}-{hi:.2f}% (placeholder rounding rule, "
-        "pending confirmation against the target agency text)."
-    ]
+    notes = [ROUNDING_LIMITATION_NOTE, VALIDATION_LIMITATION_NOTE]
     if "auc0inf" in names:
-        notes.append(
-            "AUC0-inf is decision-making (BE_AUC0INF_DECISION_MAKING = True)."
-            if criteria.BE_AUC0INF_DECISION_MAKING
-            else "AUC0-inf is reported but not decision-making "
-            "(BE_AUC0INF_DECISION_MAKING = False)."
-        )
-        notes[-1] += (
-            " Agencies differ (FDA vs EMA); pending confirmation against the target agency text."
-        )
+        notes.append(auc0inf_limitation_note())
     # Rounded-CI vs TOST disagreements are the only per-parameter notes; surface them here
     rounding_sensitive = [r.parameter for r in results if r.notes]
     notes.extend(f"{r.parameter}: {n}" for r in results for n in r.notes)
