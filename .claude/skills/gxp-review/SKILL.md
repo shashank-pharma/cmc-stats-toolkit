@@ -13,7 +13,8 @@ Check the diff against each point and report only real findings, each with file,
 suggested fix. Mark each finding High, Medium or Low.
 
 1. Attributable and traceable: results carry the app version, guideline version, input hash
-   and timestamp; reports show who or what generated them.
+   and timestamp; UI and API output show who or what generated them. (The PDF report is
+   planned for v1.1 and is not part of 1.0.0.)
 2. Original data kept: inputs are never overwritten, filtered, sorted away or imputed without
    being recorded and shown to the user.
 3. Accurate: calculations use full precision; rounding happens only at display or report

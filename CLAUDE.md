@@ -9,7 +9,7 @@ Educational and decision-support tool. Not validated for GxP use.
 - Core maths: NumPy, SciPy, statsmodels, pandas
 - Data models and input validation: pydantic v2
 - API: FastAPI. UI (v1): Streamlit with simple Plotly bar and line charts
-- PDF reports: ReportLab
+- PDF reports: not in 1.0.0; planned for v1.1 (decision by Shashank, 2026-11-04)
 - Tests: pytest, pytest-cov, hypothesis. Lint/format: ruff. Types: mypy (strict on src/)
 
 ## Commands
@@ -25,7 +25,8 @@ Educational and decision-support tool. Not validated for GxP use.
 - `src/cmc_stats/models.py`: pydantic input and result models
 - `src/cmc_stats/api.py`: FastAPI routes that call core functions
 - `src/cmc_stats/ui.py`: Streamlit screens that call the API or core
-- `src/cmc_stats/report.py`: PDF report; stamps app version, guideline version and input hash
+- PDF report (planned for v1.1, not in 1.0.0; `report.py` does not exist yet): results are
+  stamped with app version, guideline version and input hash in `models.ResultMetadata`
 
 ## Rules
 - Never invent or change a regulatory criterion. Read `/ich-stats-rules` first; if a rule is not

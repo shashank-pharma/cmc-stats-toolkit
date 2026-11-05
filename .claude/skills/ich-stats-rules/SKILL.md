@@ -14,17 +14,18 @@ supply the guideline text. Never fill a gap from memory. Put every numeric const
 1. Fit assay (or other attribute) against time by least squares, per batch.
 2. Poolability, tested at significance level 0.25 (ANCOVA):
    - First test equality of slopes (batch x time interaction) using the full model's error.
-   - If slope p >= 0.25, refit with a common slope and test equality of intercepts, using the
+   - Only p > 0.25 pools; p <= 0.25 rejects equality (user decision 2026-10-29; ICH Q1A(R2)
+     2.1.9 and 2.2.9 "more than 0.25"; ICH Q1 Step 2 draft Annex 2 p. A2-6; URS-STAB-019).
+   - If slope p > 0.25, refit with a common slope and test equality of intercepts, using the
      common-slope model's residual error (sequential ANCOVA; confirmed by the user 2026-10-27).
-   - Both p >= 0.25: pool all batches into one line.
+   - Both p > 0.25: pool all batches into one line.
    - Slopes equal, intercepts differ: common slope, separate intercepts; worst batch governs.
-   - Slopes differ: fit batches separately; the batch that reaches the limit first governs.
-     Each batch's bound uses that batch's own regression (own residual error, df = n - 2),
-     i.e. the single-batch approach of ICH Q1E Appendix B.1 applied to each batch, shortest
-     shelf-life taken. Provisional (user, 2026-10-27): pending confirmation against the Q1E
-     Appendix B text. The alternative (pooled error from the full ANCOVA model) is not used.
+   - Slopes differ: individual intercepts and individual slopes with the pooled mean square
+     error calculated from all batches (the full ANCOVA model, df = N - 2k); the batch that
+     reaches the limit first governs. ICH Q1E (2003) Appendix B.2.2.1 (also B.2.1), p. 10;
+     confirmed against the Q1E text 2026-10-29. A batch's own error (df = n - 2) is not used.
 3. Shelf-life is the earliest time the 95% confidence bound for the mean line meets the
-   acceptance criterion:
+   acceptance criterion (ICH Q1E 2.6, p. 7, confirmed 2026-10-29):
    - One-sided lower bound for an attribute expected to decrease (assay).
    - One-sided upper bound for an attribute expected to increase (degradants).
    - Two-sided 95% interval when the attribute may move either way.
@@ -32,12 +33,19 @@ supply the guideline text. Never fill a gap from memory. Put every numeric const
    Common case (no significant change at accelerated, statistical analysis performed):
    up to 2x the long-term period, but not more than 12 months beyond it. Without statistical
    analysis: up to 1.5x, but not more than 6 months beyond. Implement the other branches only
-   after the user provides the decision-tree text.
+   after the user provides the decision-tree text. Q1E 2.4.1.2, p. 4, and Appendix A, p. 8
+   (confirmed 2026-10-29) add "or if refrigerated, Y = up to 1.5X, but not exceeding X + 6
+   months"; v1 supports room temperature only (known limitation, Shashank 2026-10-29,
+   URS-STAB-020). X, "period covered by long-term data", is taken as the shortest batch
+   coverage (known limitation, URS-STAB-021).
 5. Report the model chosen, both p-values, degrees of freedom, the t value used, the
    crossing time and the proposed shelf-life (rounded down to whole months).
 
-Note: ICH Q1 is being consolidated (Step 2 draft, April 2025). Keep Q1E as the rule set
-until the user confirms the final text, and store the guideline version in each result.
+Note: ICH Q1 is being consolidated (Step 2 draft, 11 April 2025). Keep Q1A(R2) and Q1E as the
+rule set until the user confirms the final text, and store the guideline version in each result.
+Known limitation (Shashank, 2026-10-29, PC-STAB-06, URS-STAB-024): re-check these rules when
+ICH Q1 reaches Step 4 or is adopted by FDA. v1 requires the storage condition and refuses
+refrigerated, freezer and significant change at accelerated (URS-STAB-022, 023).
 
 ## 2. Dissolution similarity
 
@@ -52,10 +60,20 @@ until the user confirms the final text, and store the guideline version in each 
     usually unnecessary: flag this instead of calculating f2.
 - When CV conditions fail: bootstrap f2. Resample units with replacement, recompute f2,
   report the percentile 90% interval; similarity if the 5th percentile is at least 50.
-  Take the number of resamples and the seed as inputs and return both. Ask the user which
-  agency's expectation applies before finalising the bootstrap method.
+  Take the number of resamples and the seed as inputs and return both. Target agency is US
+  FDA with ICH as the harmonised base; EMA differences are notes only (Shashank, 2026-10-29,
+  PC-GEN-01, URS-GEN-005). FDA 1997 does not describe bootstrap f2: V.B (pp. 9-10) names a
+  multivariate model independent procedure for within-batch CV above 15%, which is not in v1.
+  Bootstrap f2 stays supplementary and provisional (known limitation, PC-DISS-01,
+  URS-DISS-013).
+- Section and readings (Shashank, 2026-10-29): f1/f2, 12 units, the 85% rule and CV limits
+  are FDA 1997 section V.A, pp. 8-9 (PC-DISS-02). "Earlier time points (e.g., 15 minutes)"
+  is read as t <= 15 min (known limitation, PC-DISS-03, URS-DISS-011). "f2 values greater
+  than 50 (50-100)" is read as inclusive: f2 = 50 is similar (known limitation,
+  URS-DISS-012). Warn when fewer than 3 points remain after the 85% cut-off ("three to four
+  or more dissolution time points"; FDA 1997 section V.A, p. 9, PC-DISS-05, URS-DISS-010).
 
-## 3. Bioequivalence, 2x2 crossover (ICH M13A, 2024; FDA BE statistics guidance)
+## 3. Bioequivalence, 2x2 crossover (ICH M13A, 2024; FDA BE statistics guidance, May 2026)
 
 - Log-transform AUC0-t, AUC0-inf and Cmax.
 - ANOVA terms: sequence, subject nested in sequence, period, treatment.
@@ -63,8 +81,20 @@ until the user confirms the final text, and store the guideline version in each 
 - Bioequivalent when the 90% CI lies within 80.00-125.00% for each required parameter.
   Equivalent to two one-sided tests at alpha 0.05; report both TOST p-values.
 - Report within-subject CV = sqrt(exp(MSE) - 1) * 100.
-- Compare CI limits after rounding to two decimals; confirm the rounding rule for the target
-  agency and store it in criteria.py.
+- Compare CI limits after rounding to two decimals; the rounding rule is stored in criteria.py.
+- Refuse fewer than 12 evaluable subjects (ICH M13A 2.2.3.1, p. 12; URS-BE-019).
+- Sources (Shashank, 2026-11-03; quotes confirmed by the user). FDA guidance: "Statistical
+  Approaches to Establishing Bioequivalence (May 2026)". M13A 2.2.3.1, pp. 11-12 (90% CI
+  equivalent to TOST at 5%, log transformation); 2.2.3.2, p. 12 (sequence, subject within
+  sequence, period, formulation); 2.2.4, p. 13 (80.00-125.00%); FDA II.C.1.a, p. 13 (TOST,
+  Schuirmann 1987). Rounding: FDA I.B footnote 6, p. 3, "the rounded confidence interval value
+  should be at least 80.00 percent and not more than 125.00 percent"; two decimals; no guidance
+  states the mode, so round half up is this tool's choice (known limitation, PC-BE-01,
+  URS-BE-020). AUC0-inf is decision-making: FDA II.C.2, p. 13 (PC-BE-02); M13A 2.2.2.2 and
+  EMA 4.1.8 differ (notes only); the FDA ANDA PK-endpoints guidance in footnote 6 was not
+  checked (known limitation, URS-BE-021). CVw formula: EMA 4.1.10, p. 17/27 only (highly
+  variable drug context; PC-BE-03). Golden cases are base R output; published example
+  (Schutz et al. 2014) planned for v1.1 (known limitation, PC-BE-04, URS-BE-022).
 - Out of scope for version 1: replicate designs, reference-scaled limits (highly variable
   and narrow therapeutic index drugs), parallel designs. Refuse these with a clear message.
 

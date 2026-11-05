@@ -30,7 +30,13 @@ BASE = [
     ("S06", "RT", 79.4, 85.0, 1210.5, 1250.9, 1290.4, 1333.7),
     ("S07", "TR", 99.9, 101.2, 1495.5, 1460.0, 1580.2, 1549.3),
     ("S08", "RT", 105.3, 100.1, 1550.8, 1530.4, 1645.6, 1622.0),
+    ("S09", "TR", 93.8, 97.2, 1388.4, 1415.9, 1470.3, 1502.8),
+    ("S10", "RT", 114.6, 109.3, 1688.2, 1650.7, 1781.9, 1740.5),
+    ("S11", "TR", 86.7, 90.1, 1275.3, 1301.8, 1352.6, 1380.2),
+    ("S12", "RT", 101.5, 98.4, 1520.9, 1498.3, 1610.7, 1585.4),
 ]
+# One more TR subject, for the unbalanced (7/6) case
+EXTRA_TR = ("S13", "TR", 97.4, 95.0, 1460.2, 1442.8, 1548.1, 1530.6)
 
 
 def records(base: list[tuple[Any, ...]] = BASE, *, with_inf: bool = True) -> list[dict[str, Any]]:
@@ -265,10 +271,10 @@ def test_no_rounding_note_away_from_boundary() -> None:
 
 @pytest.mark.filterwarnings("ignore::statsmodels.tools.sm_exceptions.SingularMatrixWarning")
 def test_unbalanced_sequences_accepted_and_counted() -> None:
-    """URS-BE-012: 4 TR / 3 RT runs, matches statsmodels and reports n per sequence."""
-    recs = records(BASE[:7])
+    """URS-BE-012: 7 TR / 6 RT runs, matches statsmodels and reports n per sequence."""
+    recs = records([*BASE, EXTRA_TR])
     res = be.analyse_parameter(make_input(recs), "cmax")
-    assert (res.n_tr, res.n_rt, res.df) == (4, 3, 5)
+    assert (res.n_tr, res.n_rt, res.df) == (7, 6, 11)
     assert res.diff_log == pytest.approx(sm_fit(recs, "cmax").params[TREATMENT_COEF], abs=1e-12)
 
 
@@ -299,7 +305,7 @@ def test_auc0inf_present_is_analysed_and_decides() -> None:
     assert "auc0inf" in result.conclusion
 
 
-def test_auc0inf_reported_but_not_deciding_when_placeholder_false(
+def test_auc0inf_reported_but_not_deciding_when_flag_false(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """URS-BE-014: with BE_AUC0INF_DECISION_MAKING False, AUC0-inf is reported only."""
@@ -312,13 +318,14 @@ def test_auc0inf_reported_but_not_deciding_when_placeholder_false(
     assert result.decision_parameters == ("cmax", "auc0t")
     assert result.bioequivalent is True
     assert any("AUC0-inf" in n and "not decision-making" in n for n in result.notes)
+    assert be.auc0inf_limitation_note() in result.notes
 
 
 def test_result_reports_every_reviewer_value() -> None:
     """URS-BE-017: counts, df, MSE, difference, SE, t, PE, CI (both forms), pass, TOST, CVw."""
     res = be.analyse_parameter(make_input(), "cmax")
-    assert (res.n_tr, res.n_rt, res.df) == (4, 4, 6)
-    assert res.t_value == pytest.approx(sps.t.ppf(criteria.BE_CI_LEVEL + 0.05, 6))
+    assert (res.n_tr, res.n_rt, res.df) == (6, 6, 10)
+    assert res.t_value == pytest.approx(sps.t.ppf(criteria.BE_CI_LEVEL + 0.05, 10))
     pe, lo, hi = be.gmr_interval(res.diff_log, res.se_log, res.df)
     assert (res.pe_pct, res.ci_lower_pct, res.ci_upper_pct) == (pe, lo, hi)
     assert res.ci_lower_pct != round(res.ci_lower_pct, 2)  # kept at full precision
@@ -446,10 +453,42 @@ def test_residual_df_below_one_rejected() -> None:
         make_input(records(BASE[:2]))
 
 
-def test_three_subjects_give_one_residual_df() -> None:
-    """URS-BE-013: 3 subjects (residual df 1) are accepted."""
-    res = be.analyse_parameter(make_input(records(BASE[:3])), "cmax")
-    assert res.df == 1
+def test_three_subjects_pass_the_df_check_then_meet_the_12_subject_rule() -> None:
+    """URS-BE-013, URS-BE-019: 3 subjects (residual df 1) pass the df check and are then
+    refused by the 12-subject rule, not by the df rule."""
+    with pytest.raises(ValidationError) as err:
+        make_input(records(BASE[:3]))
+    assert "residual degrees of freedom" not in str(err.value)
+    assert "3 evaluable subjects supplied; at least 12 required" in str(err.value)
+
+
+# --- URS-BE-019: at least 12 evaluable subjects ---------------------------------------------
+
+
+def test_eleven_subjects_rejected_naming_the_count() -> None:
+    """URS-BE-019: ICH M13A 2.2.3.1, p. 12: fewer than 12 evaluable subjects (here 6 TR /
+    5 RT) is refused, giving the count, the minimum and the source."""
+    with pytest.raises(
+        ValidationError,
+        match=r"11 evaluable subjects supplied; at least 12 required "
+        r"\(ICH M13A, 2024, 2\.2\.3\.1\)",
+    ):
+        make_input(records(BASE[:11]))
+
+
+def test_twelve_subjects_accepted() -> None:
+    """URS-BE-019: exactly 12 evaluable subjects is accepted."""
+    data = make_input()
+    assert len({r.subject for r in data.records}) == criteria.BE_MIN_EVALUABLE_SUBJECTS == 12
+    assert be.analyse_parameter(data, "cmax").df == 10
+
+
+def test_subject_missing_a_period_is_rejected_not_counted_as_unevaluable() -> None:
+    """URS-BE-008, URS-BE-019: 12 subjects with one period missing is refused for the missing
+    period; the tool never drops the subject and counts 11 evaluable ones."""
+    recs = [r for r in records() if not (r["subject"] == "S12" and r["period"] == 1)]
+    with pytest.raises(ValidationError, match=r"S12.*missing period 1"):
+        make_input(recs)
 
 
 def test_partial_auc0inf_rejected_listing_records() -> None:
@@ -566,3 +605,35 @@ def test_swapping_labels_inverts_the_ratio() -> None:
     assert r1.ci_lower_pct == pytest.approx(10000.0 / r0.ci_upper_pct, rel=1e-12)
     assert r1.ci_upper_pct == pytest.approx(10000.0 / r0.ci_lower_pct, rel=1e-12)
     assert np.isclose(r1.mse, r0.mse, rtol=1e-12)
+
+
+# --- URS-BE-020 to 022: known limitations ---------------------------------------------------
+
+
+def test_every_result_carries_rounding_and_validation_limitations() -> None:
+    """URS-BE-020, URS-BE-022: with or without AUC0-inf, every result carries the rounding-mode
+    and validation-evidence known-limitation notes."""
+    for recs in (records(), records(with_inf=False)):
+        result = be.assess_bioequivalence(make_input(recs), timestamp=FIXED_TIME)
+        for note in (be.ROUNDING_LIMITATION_NOTE, be.VALIDATION_LIMITATION_NOTE):
+            assert note in result.notes
+            assert note.startswith("Known limitation:")
+    assert "at least 80.00 percent and not more than 125.00 percent" in (
+        be.ROUNDING_LIMITATION_NOTE
+    )
+    assert "No guidance states the rounding mode" in be.ROUNDING_LIMITATION_NOTE
+    assert "Schutz et al. 2014" in be.VALIDATION_LIMITATION_NOTE
+    assert "v1.1" in be.VALIDATION_LIMITATION_NOTE
+
+
+def test_auc0inf_limitation_only_when_auc0inf_is_analysed() -> None:
+    """URS-BE-014, URS-BE-021: the AUC0-inf note cites FDA II.C.2 and the unchecked ANDA
+    PK-endpoints guidance, and appears only when AUC0-inf is supplied."""
+    with_inf = be.assess_bioequivalence(make_input(), timestamp=FIXED_TIME)
+    without = be.assess_bioequivalence(make_input(records(with_inf=False)), timestamp=FIXED_TIME)
+    note = be.auc0inf_limitation_note()
+    assert note in with_inf.notes
+    assert note not in without.notes
+    assert note.startswith("Known limitation: AUC0-inf is decision-making")
+    assert "II.C.2, p. 13" in note
+    assert "was not checked" in note

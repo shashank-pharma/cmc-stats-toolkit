@@ -57,6 +57,7 @@ def make_input(
         "attribute": "Assay",
         "unit": "% label claim",
         "direction": "decrease",
+        "storage_condition": "room_temperature",
         "lower_limit": LIMIT,
         "significant_change_at_accelerated": False,
         "statistical_analysis_performed": True,
@@ -184,7 +185,7 @@ def test_intercept_test_uses_common_slope_error(b003: list[float]) -> None:
 
 
 def test_intercepts_not_tested_when_slopes_differ() -> None:
-    """URS-STAB-002: when slope p < 0.25 the intercept test is not run."""
+    """URS-STAB-002: when slope p <= 0.25 the intercept test is not run."""
     pool = stab.poolability(with_b003(B003_FASTER))
     assert pool.slopes.p_value < criteria.POOLABILITY_ALPHA
     assert pool.intercepts is None
@@ -207,17 +208,30 @@ def test_model_chosen_for_each_branch(b003: list[float], model: str) -> None:
 @pytest.mark.parametrize(
     ("slope_p", "intercept_p", "model"),
     [
-        (0.25, 0.25, "pooled"),
-        (0.9, 0.25, "pooled"),
-        (0.25, 0.2499999, "common_slope"),
+        (0.25, None, "separate"),
         (0.2499999, None, "separate"),
+        (0.2500001, 0.25, "common_slope"),
+        (0.9, 0.25, "common_slope"),
+        (0.2500001, 0.2500001, "pooled"),
     ],
 )
-def test_select_model_treats_p_equal_to_0_25_as_poolable(
+def test_select_model_rejects_equality_at_p_0_25(
     slope_p: float, intercept_p: float | None, model: str
 ) -> None:
-    """URS-STAB-002: p >= 0.25 means poolable; the boundary value itself pools."""
+    """URS-STAB-019: only p > 0.25 pools; p equal to 0.25 rejects equality."""
     assert stab.select_model(slope_p, intercept_p) == model
+
+
+def test_poolability_tests_intercepts_only_above_0_25(monkeypatch: pytest.MonkeyPatch) -> None:
+    """URS-STAB-019: a slope p exactly at alpha rejects equal slopes; intercepts are not tested."""
+    data = with_b003(B003_SIMILAR)
+    slope_p = stab.poolability(data).slopes.p_value
+    assert slope_p > criteria.POOLABILITY_ALPHA
+    monkeypatch.setattr(criteria, "POOLABILITY_ALPHA", slope_p)
+    pool = stab.poolability(data)
+    assert pool.slopes.p_value == slope_p
+    assert pool.intercepts is None
+    assert pool.model == "separate"
 
 
 @pytest.mark.parametrize(
@@ -261,16 +275,18 @@ def test_common_slope_bound_uses_common_model_for_each_batch() -> None:
     )
 
 
-def test_separate_bound_uses_each_batch_own_fit() -> None:
-    """URS-STAB-003: separate model uses the batch's own regression error, df n-2 (provisional,
-    ICH Q1E Appendix B.1 per batch, pending confirmation against the Q1E text)."""
+@pytest.mark.parametrize("label", ["B001", "B002", "B003"])
+def test_separate_bound_uses_full_model_pooled_mse(label: str) -> None:
+    """URS-STAB-003: separate model uses each batch's intercept and slope with the pooled mean
+    square error of the full model, df N - 2k (ICH Q1E Appendix B.2.2.1, p. 10)."""
     data = with_b003(B003_FASTER)
-    d = frame(data)
-    grid = np.array([0.0, 12.0, 24.6])
-    ref = smf.ols("y ~ time", d[d.batch == "B003"]).fit()
-    expected = ref.get_prediction(pd.DataFrame({"time": grid})).conf_int(alpha=0.10)[:, 0]
+    grid = np.array([0.0, 12.0, 24.3])
+    ref = smf.ols("y ~ C(batch) * time", frame(data)).fit()
+    assert ref.df_resid == 15
+    new = pd.DataFrame({"batch": [label] * grid.size, "time": grid})
+    expected = ref.get_prediction(new).conf_int(alpha=0.10)[:, 0]
     np.testing.assert_allclose(
-        stab.lower_bound(data, "separate", "B003", grid), expected, rtol=0, atol=1e-10
+        stab.lower_bound(data, "separate", label, grid), expected, rtol=0, atol=1e-10
     )
 
 
@@ -390,6 +406,58 @@ def test_x_is_shortest_batch_coverage() -> None:
     assert ext.cap_months == 24.0
 
 
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_appendix_a_branch_limitation(b003: list[float]) -> None:
+    """URS-STAB-020: every result (pooled, common slope, separate) carries the known-limitation
+    note that only the room-temperature, statistical-analysis branch of the cap is supported."""
+    notes = stab.estimate_shelf_life(with_b003(b003)).notes
+    assert stab.APPENDIX_A_BRANCH_LIMITATION_NOTE in notes
+    assert stab.APPENDIX_A_BRANCH_LIMITATION_NOTE.startswith("Known limitation:")
+    assert "refrigerated" in stab.APPENDIX_A_BRANCH_LIMITATION_NOTE
+
+
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_x_definition_limitation(b003: list[float]) -> None:
+    """URS-STAB-021: every result carries the known-limitation note that X is the shortest
+    batch coverage."""
+    notes = stab.estimate_shelf_life(with_b003(b003)).notes
+    assert stab.X_DEFINITION_LIMITATION_NOTE in notes
+    assert stab.X_DEFINITION_LIMITATION_NOTE.startswith("Known limitation:")
+    assert "period covered by long-term data" in stab.X_DEFINITION_LIMITATION_NOTE
+
+
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_guideline_basis_limitation(b003: list[float]) -> None:
+    """URS-STAB-024: every result carries the known-limitation note that the rules follow
+    ICH Q1A(R2) and Q1E, not the draft consolidated ICH Q1."""
+    note = stab.GUIDELINE_BASIS_LIMITATION_NOTE
+    assert note in stab.estimate_shelf_life(with_b003(b003)).notes
+    assert note.startswith("Known limitation:")
+    assert "Step 2 draft" in note
+    assert "Step 4" in note
+    assert "FDA" in note
+
+
+@pytest.mark.parametrize("b003", [B003_SIMILAR, B003_LOWER_START, B003_FASTER])
+def test_every_result_notes_validation_limitation(b003: list[float]) -> None:
+    """URS-STAB-025: every result carries the known-limitation note that the golden cases are
+    base R output on dummy data, with a published example planned for v1.1 (PC-STAB-07)."""
+    note = stab.VALIDATION_LIMITATION_NOTE
+    assert note in stab.estimate_shelf_life(with_b003(b003)).notes
+    assert note.startswith("Known limitation:")
+    assert "base R" in note
+    assert "v1.1" in note
+
+
+def test_guideline_stamp_names_q1a_r2_and_q1e() -> None:
+    """URS-STAB-026, URS-GEN-002: stability results are stamped with both ICH Q1A(R2) and
+    ICH Q1E and the Step 4 date on each document."""
+    meta = stab.estimate_shelf_life(with_b003(B003_SIMILAR), timestamp=FIXED_TIME).metadata
+    assert meta.guideline_version == (
+        "ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)"
+    )
+
+
 def test_x_uses_last_time_point_not_list_order() -> None:
     """URS-STAB-008: X is the latest time in each batch even when entered unsorted."""
     t = [24.0, 0.0, 12.0]
@@ -439,12 +507,17 @@ def test_result_reports_every_reviewer_value() -> None:
     assert "29" in result.conclusion
 
 
-def test_separate_model_uses_own_df_and_t() -> None:
-    """URS-STAB-005: separate model reports each batch's own df (n-2) and t value."""
-    result = stab.estimate_shelf_life(with_b003(B003_FASTER), timestamp=FIXED_TIME)
+def test_separate_model_uses_full_model_df_and_t() -> None:
+    """URS-STAB-005: separate model reports the full model's df (N - 2k) and its t value, while
+    the per-batch fits keep their own df (n - 2)."""
+    data = with_b003(B003_FASTER)
+    result = stab.estimate_shelf_life(data, timestamp=FIXED_TIME)
+    n, k = sum(len(b.values) for b in data.batches), len(data.batches)
+    assert result.poolability.model == "separate"
     for line in result.per_batch:
-        assert line.df == 5
-        assert line.t_value == pytest.approx(sps.t.ppf(0.95, 5))
+        assert line.df == n - 2 * k == 15
+        assert line.t_value == pytest.approx(sps.t.ppf(criteria.SHELF_LIFE_CONFIDENCE, 15))
+    assert all(f.residual_df == 5 for f in result.batch_fits)
 
 
 def test_bound_below_limit_at_start_gives_zero_shelf_life() -> None:
@@ -487,9 +560,14 @@ def test_cap_limits_shelf_life_when_crossing_is_later() -> None:
 
 
 def test_two_batches_run_with_q1a_warning() -> None:
-    """URS-STAB-017: 2 batches -> result returned with an ICH Q1A(R2) warning."""
+    """URS-STAB-017: 2 batches -> result returned with an ICH Q1A(R2) warning that cites
+    2.1.3 and 2.2.3 and is no longer pending confirmation (PC-STAB-02)."""
     result = stab.estimate_shelf_life(make_input({"B001": B001, "B002": B002}))
-    assert any("ICH Q1A(R2), Selection of Batches" in w for w in result.warnings)
+    (warning,) = result.warnings
+    assert "ICH Q1A(R2), Selection of Batches" in warning
+    assert "2.1.3" in warning
+    assert "2.2.3" in warning
+    assert "pending confirmation" not in warning
     assert result.proposed_shelf_life_months > 0
 
 
@@ -508,26 +586,51 @@ def test_only_decreasing_attribute_supported(direction: str) -> None:
         make_input(direction=direction)
 
 
-@pytest.mark.parametrize(
-    ("significant_change", "analysis_performed"),
-    [(True, True), (False, False), (True, False)],
-)
-def test_only_statistical_analysis_branch_of_appendix_a(
-    significant_change: bool, analysis_performed: bool
-) -> None:
-    """URS-STAB-007: any branch other than no significant change + statistics is refused."""
+def test_only_statistical_analysis_branch_of_appendix_a() -> None:
+    """URS-STAB-007: statistical analysis not performed is refused."""
     with pytest.raises(ValidationError, match="Appendix A"):
+        make_input(statistical_analysis_performed=False)
+
+
+@pytest.mark.parametrize("analysis_performed", [True, False])
+def test_significant_change_at_accelerated_not_supported(analysis_performed: bool) -> None:
+    """URS-STAB-023: significant change at accelerated is refused as not supported in v1."""
+    with pytest.raises(
+        ValidationError, match=r"significant change at accelerated.*not supported in v1"
+    ):
         make_input(
-            significant_change_at_accelerated=significant_change,
+            significant_change_at_accelerated=True,
             statistical_analysis_performed=analysis_performed,
         )
 
 
+@pytest.mark.parametrize("condition", ["refrigerated", "freezer"])
+def test_only_room_temperature_storage_supported(condition: str) -> None:
+    """URS-STAB-022: refrigerated and freezer storage are refused as not supported in v1."""
+    with pytest.raises(ValidationError, match=rf"'{condition}'.*not supported in v1"):
+        make_input(storage_condition=condition)
+
+
+@pytest.mark.parametrize("value", ["Room temperature", "frozen", "", None])
+def test_storage_condition_must_be_a_listed_choice(value: Any) -> None:
+    """URS-STAB-022: anything other than the three listed storage conditions is rejected."""
+    with pytest.raises(ValidationError, match="storage_condition"):
+        make_input(storage_condition=value)
+
+
+def test_room_temperature_storage_accepted_and_recorded() -> None:
+    """URS-STAB-022: room temperature runs and the condition is kept in the result inputs."""
+    result = stab.estimate_shelf_life(make_input())
+    assert result.inputs.storage_condition == "room_temperature"
+
+
 @pytest.mark.parametrize(
-    "missing", ["significant_change_at_accelerated", "statistical_analysis_performed"]
+    "missing",
+    ["storage_condition", "significant_change_at_accelerated", "statistical_analysis_performed"],
 )
 def test_appendix_a_flags_have_no_default(missing: str) -> None:
-    """URS-STAB-007: the Appendix A conditions must be stated explicitly."""
+    """URS-STAB-007, URS-STAB-022, URS-STAB-023: the storage condition and the Appendix A
+    conditions must be stated explicitly."""
     fields = make_input().model_dump()
     del fields[missing]
     with pytest.raises(ValidationError, match=missing):

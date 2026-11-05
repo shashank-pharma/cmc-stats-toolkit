@@ -27,6 +27,7 @@ STAB_SETTINGS: dict[str, Any] = {
     "attribute": "Assay",
     "unit": "% label claim",
     "direction": "decrease",
+    "storage_condition": "room_temperature",
     "lower_limit": 95.0,
     "significant_change_at_accelerated": False,
     "statistical_analysis_performed": True,
@@ -327,6 +328,7 @@ def test_missing_settings_lists_every_unset_item() -> None:
         "unit",
         "direction",
         "lower_limit",
+        "storage_condition",
         "significant_change_at_accelerated",
         "statistical_analysis_performed",
     ]
@@ -438,13 +440,32 @@ def test_template_run_records_template_name() -> None:
 # --- URS-UI-011: prominent notes ----------------------------------------------------------
 
 
-def test_prominent_notes_pick_provisional_and_pending() -> None:
-    """URS-UI-011: separate-slopes (provisional) and Q1A(R2) (pending) notes are surfaced."""
+def test_prominent_notes_skip_confirmed_stability_notes() -> None:
+    """URS-UI-011: the separate-slopes note (ICH Q1E Appendix B.2.2.1, PC-STAB-01) and the
+    Q1A(R2) fewer-than-3-batches warning (2.1.3 and 2.2.3, PC-STAB-02) are confirmed, so neither
+    is promoted; the warning is still shown in its own box by ui.show_result. Only the
+    known-limitation notes are promoted."""
     data = stab_golden("GOLD-STAB-003")
     two_batches = data.model_copy(update={"batches": data.batches[1:]})
-    notes = ui.prominent_notes(stability.estimate_shelf_life(two_batches))
-    assert any("Provisional" in n for n in notes)
-    assert any("pending confirmation" in n for n in notes)
+    result = stability.estimate_shelf_life(two_batches)
+    assert stability.SEPARATE_MODEL_NOTE in result.notes
+    assert any("ICH Q1A(R2)" in w for w in result.warnings)
+    assert ui.prominent_notes(result) == list(STABILITY_LIMITATIONS)
+
+
+STABILITY_LIMITATIONS = (
+    stability.APPENDIX_A_BRANCH_LIMITATION_NOTE,
+    stability.X_DEFINITION_LIMITATION_NOTE,
+    stability.GUIDELINE_BASIS_LIMITATION_NOTE,
+    stability.VALIDATION_LIMITATION_NOTE,
+)
+
+
+def test_prominent_notes_include_known_limitations() -> None:
+    """URS-UI-011, URS-STAB-020, 021, 024, 025: known-limitation notes are promoted, in
+    order."""
+    result = stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))
+    assert ui.prominent_notes(result) == list(STABILITY_LIMITATIONS)
 
 
 def test_prominent_notes_include_bootstrap_method_note() -> None:
@@ -464,7 +485,15 @@ def test_prominent_notes_include_bootstrap_method_note() -> None:
     )
     result = dissolution.compare_profiles(data, BootstrapSettings(seed=1, n_resamples=1000))
     assert result.bootstrap is not None
-    assert result.bootstrap.method_note in ui.prominent_notes(result)
+    prominent = ui.prominent_notes(result)
+    assert result.bootstrap.method_note in prominent
+    # URS-DISS-011 to 014: every dissolution known limitation on this result is promoted
+    assert prominent[:4] == [
+        dissolution.CV_EARLY_LIMITATION_NOTE,
+        dissolution.F2_BOUNDARY_LIMITATION_NOTE,
+        dissolution.VALIDATION_LIMITATION_NOTE,
+        dissolution.BOOTSTRAP_LIMITATION_NOTE,
+    ]
 
     # URS-UI-012: the summary table records the seed and the interval at full precision
     summary = dict(ui.dissolution_tables(result)["summary"].itertuples(index=False))
@@ -472,16 +501,26 @@ def test_prominent_notes_include_bootstrap_method_note() -> None:
     assert summary["bootstrap_lower"] == str(result.bootstrap.lower)
 
 
-def test_prominent_notes_be_rounding_placeholder() -> None:
-    """URS-UI-011: the BE rounding and AUC0-inf placeholders are surfaced."""
+def test_prominent_notes_include_be_known_limitations() -> None:
+    """URS-UI-011, URS-BE-020, 021, 022: the BE known-limitation notes are promoted, in order;
+    without AUC0-inf only the rounding and validation notes."""
     notes = ui.prominent_notes(be.assess_bioequivalence(be_golden("GOLD-BE-001")))
-    assert any("rounded" in n and "pending confirmation" in n for n in notes)
-    assert any("AUC0-inf" in n for n in notes)
+    assert notes == [
+        be.ROUNDING_LIMITATION_NOTE,
+        be.VALIDATION_LIMITATION_NOTE,
+        be.auc0inf_limitation_note(),
+    ]
+    no_inf = ui.prominent_notes(be.assess_bioequivalence(be_golden("GOLD-BE-003")))
+    assert no_inf == [be.ROUNDING_LIMITATION_NOTE, be.VALIDATION_LIMITATION_NOTE]
 
 
 def test_ordinary_notes_not_promoted() -> None:
-    """URS-UI-011: a pooled, 3-batch stability result has no provisional notes."""
-    assert ui.prominent_notes(stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))) == []
+    """URS-UI-011: in a pooled, 3-batch stability result only the known-limitation notes are
+    promoted; the model note and the other ordinary notes are not."""
+    result = stability.estimate_shelf_life(stab_golden("GOLD-STAB-001"))
+    ordinary = [n for n in result.notes if n not in STABILITY_LIMITATIONS]
+    assert ordinary
+    assert not set(ordinary) & set(ui.prominent_notes(result))
 
 
 # --- URS-UI-012: tables keep full precision -----------------------------------------------

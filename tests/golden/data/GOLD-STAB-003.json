@@ -1,11 +1,12 @@
 {
   "id": "GOLD-STAB-003",
   "requirement": "URS-STAB-001, URS-STAB-002, URS-STAB-003, URS-STAB-004, URS-STAB-005, URS-STAB-008",
-  "source": "Independent R output (R version 4.6.1 (2026-06-24), base lm/anova/predict/uniroot; tests/golden/r/stability_gold.R) on dummy data supplied by the user 2026-10-27; statsmodels cross-check; published example pending (GOLD-STAB-004). Separate-slopes model uses each batch's own regression error (df = n - 2), ICH Q1E Appendix B.1 applied per batch: provisional, pending confirmation against the Q1E text.",
+  "source": "Independent R output (R version 4.6.1 (2026-06-24), base lm/anova/predict/uniroot; tests/golden/r/stability_gold.R) on dummy data supplied by the user 2026-10-27; statsmodels cross-check; published example pending (GOLD-STAB-004). Separate-slopes model uses individual intercepts and slopes with the pooled mean square error of the full model (df = N - 2k), ICH Q1E (2003) Appendix B.2.2.1, p. 10; R output regenerated 2026-10-29.",
   "inputs": {
     "attribute": "Assay",
     "unit": "% label claim",
     "direction": "decrease",
+    "storage_condition": "room_temperature",
     "significant_change_at_accelerated": false,
     "statistical_analysis_performed": true,
     "lower_limit": 95.0,
@@ -118,32 +119,32 @@
         "label": "B001",
         "intercept": 100.08922156,
         "slope": -0.14061876,
-        "df": 5,
-        "t_value": 2.01504837,
-        "bound_at_0": 99.8341871,
-        "crossing_months": 32.84197599
+        "df": 15,
+        "t_value": 1.75305036,
+        "bound_at_0": 99.88534215,
+        "crossing_months": 33.44940849
       },
       {
         "label": "B002",
         "intercept": 100.22215569,
         "slope": -0.14520958,
-        "df": 5,
-        "t_value": 2.01504837,
-        "bound_at_0": 99.94705655,
-        "crossing_months": 32.50987285
+        "df": 15,
+        "t_value": 1.75305036,
+        "bound_at_0": 100.01827628,
+        "crossing_months": 33.32061198
       },
       {
         "label": "B003",
         "intercept": 100.15928144,
         "slope": -0.20159681,
-        "df": 5,
-        "t_value": 2.01504837,
-        "bound_at_0": 100.00424187,
-        "crossing_months": 24.62037974
+        "df": 15,
+        "t_value": 1.75305036,
+        "bound_at_0": 99.95540203,
+        "crossing_months": 24.33389941
       }
     ],
     "governing_batch": "B003",
-    "crossing_months": 24.62037974,
+    "crossing_months": 24.33389941,
     "x_months": 24.0,
     "cap_months": 36.0,
     "proposed_shelf_life_months": 24
@@ -157,6 +158,6 @@
       "proposed_shelf_life_months": 24
     },
     "tolerance": {},
-    "note": "The user's earlier statsmodels crossing of 24.33 months used the pooled residual error of the full ANCOVA model (df 15; R gives 24.33389941 that way). This project uses each batch's own error (df 5), giving 24.62037974. Same shelf-life (24)."
+    "note": "The user's statsmodels crossing of 24.33 months used the pooled residual error of the full ANCOVA model (df 15), the method required by ICH Q1E Appendix B.2.2.1 and used from 0.6.0; R gives 24.33389941. Up to 0.5.0 this project used each batch's own error (df 5), giving 24.62037974. Same shelf-life (24)."
   }
 }

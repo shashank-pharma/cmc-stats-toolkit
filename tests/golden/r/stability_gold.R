@@ -6,11 +6,12 @@
 #
 # Method (ICH Q1E, as set out in the ich-stats-rules skill):
 # - Slopes: anova(common, full), F on the full model's residual error.
-# - Intercepts (only if slope p >= 0.25): anova(pooled, common), F on the common-slope model's
+# - Intercepts (only if slope p > 0.25): anova(pooled, common), F on the common-slope model's
 #   residual error (sequential ANCOVA).
-# - Model: both p >= 0.25 -> pooled; slopes equal only -> common slope; else separate per-batch
-#   lm fits, each with its own residual error (df = n - 2): ICH Q1E Appendix B.1 per batch,
-#   provisional, pending confirmation against the Q1E text. Not the full-model pooled error.
+# - Model: only p > 0.25 pools (p <= 0.25 rejects equality; URS-STAB-019). Both p > 0.25 ->
+#   pooled; slopes equal only -> common slope; else separate lines from the full model
+#   lm(y ~ batch * time): individual intercepts and slopes with the pooled mean square error
+#   from all batches (df = N - 2k), ICH Q1E (2003) Appendix B.2.2.1, p. 10.
 # - One-sided 95% lower bound of the mean = lower limit of the two-sided 90% confidence interval
 #   from predict(..., interval = "confidence", level = 0.90).
 # - Crossing: earliest t >= 0 where the bound meets the limit (grid scan, then uniroot).
@@ -63,12 +64,12 @@ analyse <- function(id, b003) {
   a_slope <- anova(common, full)
   slope_p <- a_slope$`Pr(>F)`[2]
   int <- list(F = NA, df_num = NA, df_den = NA, p = NA)
-  if (slope_p >= alpha) {
+  if (slope_p > alpha) {
     a_int <- anova(pooled, common)
     int <- list(F = a_int$F[2], df_num = a_int$Df[2], df_den = a_int$Res.Df[2],
                 p = a_int$`Pr(>F)`[2])
   }
-  model <- if (slope_p < alpha) "separate" else if (int$p < alpha) "common_slope" else "pooled"
+  model <- if (slope_p <= alpha) "separate" else if (int$p <= alpha) "common_slope" else "pooled"
 
   # Per-batch least-squares fits (URS-STAB-001)
   fits <- vapply(labels, function(b) {
@@ -97,8 +98,8 @@ analyse <- function(id, b003) {
     for (b in labels) {
       lines[[b]] <- local({
         bb <- b
-        list(fit = lm(y ~ time, data = d[d$batch == bb, ]), label = bb,
-             nd = function(t) data.frame(time = t))
+        list(fit = full, label = bb,
+             nd = function(t) data.frame(batch = factor(bb, levels = labels), time = t))
       })
     }
   }

@@ -77,8 +77,15 @@ def settings_for(area: Area) -> dict[str, Any]:
             "lower_limit": st.number_input(
                 "Lower acceptance limit", value=None, format="%.4f", key="stab_lower_limit"
             ),
+            "storage_condition": st.selectbox(
+                "Storage condition (v1 supports room temperature only)",
+                ["room_temperature", "refrigerated", "freezer"],
+                index=None,
+                format_func=lambda c: c.replace("_", " ").capitalize(),
+                key="stab_storage",
+            ),
             "significant_change_at_accelerated": st.selectbox(
-                "Significant change at accelerated condition?",
+                "Significant change at accelerated condition? (v1 supports No only)",
                 [True, False],
                 index=None,
                 format_func=yes_no,

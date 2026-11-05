@@ -1,0 +1,111 @@
+# Release 1.0.0: confirmation register
+
+Version 1.0.0 is reserved for when every item below is closed (CHANGELOG 0.5.0, "Versioning").
+This register collects every pending confirmation, provisional method and placeholder in the
+project, so none is forgotten and each can be closed against its source.
+
+Built on 2026-10-29 at v0.5.0 by searching every tracked file (`git ls-files`, excluding
+`uv.lock`, the sample CSVs and the CHANGELOG history) for "pending confirmation", "pending
+agency", "provisional", "placeholder", "confirm for the target agency" and "published example
+pending". A second search looked for section citations and interpretations that are just as
+unconfirmed but carry none of those words; those rows are marked **(unmarked)**. "Where it
+appears" names files and symbols rather than line numbers, which drift.
+
+## Register
+
+| ID | Where it appears | What must be confirmed | Source document needed | Status |
+|---|---|---|---|---|
+| PC-STAB-01 | `ich-stats-rules` skill §1 rule 2; `core/stability.py` (`SEPARATE_MODEL_NOTE`, `lower_bound`); URS-STAB-003, URS-STAB-005; `docs/traceability.md`; GOLD-STAB-003 and `tests/golden/r/stability_gold.R`; `tests/test_stability.py`; `sample_data/README.md` | When batch slopes differ, does each batch's bound use its own regression error (Appendix B.1 single-batch approach per batch, df = n − 2) or the pooled error of the full ANCOVA model? This changes the crossing for GOLD-STAB-003 (24.62 vs 24.33 months). | ICH Q1E (2003), Appendix B | **confirmed** 2026-10-29: pooled error. ICH Q1E, Step 4 (6 February 2003), Appendix B.2.2.1 (same wording in B.2.1), printed p. 10: "using individual intercepts and individual slopes and the pooled mean square error calculated from all batches"; same in ICH Q1 Step 2 draft (11 April 2025) 13.2.1, p. 51. Code changed in 0.6.0 (URS-STAB-003, URS-STAB-005); GOLD-STAB-003 regenerated from R: crossing 24.33389941 months, shelf-life 24. The p = 0.25 boundary rule (only p > 0.25 pools) was recorded at the same time as URS-STAB-019 (user decision 2026-10-29, Shashank). |
+| PC-STAB-02 | `criteria.py` (`STABILITY_PRIMARY_BATCHES`); `core/stability.py` (fewer-than-3-batches warning); URS-STAB-017; `docs/traceability.md` | Section numbers for "Selection of Batches" (believed 2.1.3 drug substance, 2.2.3 drug product) and the exact "at least three primary batches" wording. | ICH Q1A(R2) (2003) | **confirmed** 2026-10-29: ICH Q1A(R2) (2003), Selection of Batches, 2.1.3 (drug substance), printed p. 2, and 2.2.3 (drug product), printed p. 6 (checked by the user against the PDF). 2.1.3, p. 2: "Data from formal stability studies should be provided on at least three primary batches of the drug substance." 2.2.3, p. 6: "Data from stability studies should be provided on at least three primary batches of the drug product." The same text supports URS-STAB-019: 2.1.9 (p. 5) and 2.2.9 (begins p. 12; quoted sentence p. 13) contain "rejection of more than 0.25". `criteria.py` comment, warning text and URS-STAB-017 cite both sections; "pending confirmation" removed, so the warning is no longer promoted under URS-UI-011 but is still shown in its own warning box. |
+| PC-STAB-03 (unmarked) | `criteria.py` (`POOLABILITY_ALPHA` comment: "section 2.3 and Appendix B") | That section 2.3 and Appendix B are the correct locations for the 0.25 poolability significance level. | ICH Q1E (2003) | **confirmed** 2026-10-29: value 0.25 confirmed; "section 2.3" was wrong. The location is ICH Q1E (2003), Appendix B.2.2.1, printed p. 10 (checked by the user against the PDF). `criteria.py` comment corrected. |
+| PC-STAB-04 (unmarked) | `criteria.py` (`SHELF_LIFE_CONFIDENCE`, `EXTRAPOLATION_FACTOR_STATS`, `EXTRAPOLATION_MAX_EXTRA_MONTHS_STATS`); `core/stability.py` docstrings | Section and page for the one-sided 95% confidence bound on the mean, and for the Appendix A cap in the "no significant change at accelerated, statistical analysis performed" branch (2X, at most 12 months beyond). | ICH Q1E (2003), main text and Appendix A | **confirmed** 2026-10-29, with a **known limitation**. Bound: ICH Q1E (2003) 2.6, printed p. 7: "For an attribute known to decrease with time, the lower one-sided 95 percent confidence limit should be compared to the acceptance criterion." Cap: 2.4.1.2, printed p. 4, and Appendix A, printed p. 8: "Y = up to 2X, but not exceeding X + 12 months; or if refrigerated, Y = up to 1.5X, but not exceeding X + 6 months." (quotes checked by the user). Cited in `criteria.py`, `core/stability.py` docstrings, URS-STAB-003, 004 and 007. Known limitation (decided by Shashank, 2026-10-29): v1 implements only the room-temperature, no-significant-change, statistical-analysis-performed branch; the refrigerated branch (1.5X, not exceeding X + 6, Q1E 2.5.1.1, printed p. 6) and the other Appendix A branches are not supported. Since 0.7.0 `StabilityInput` requires `storage_condition` and refuses refrigerated and freezer storage (URS-STAB-022), and refuses significant change at accelerated (URS-STAB-023), both as "not supported in v1"; the limitation is still stated in every stability result as `APPENDIX_A_BRANCH_LIMITATION_NOTE` (URS-STAB-020), shown in the warning box (URS-UI-011). |
+| PC-STAB-05 (unmarked) | URS-STAB-008; `core/stability.py` (`extrapolation_cap`) | X, "the period covered by long-term data", is taken as the shortest of the batches' last time points (user decision 2026-10-27). Check this against the Appendix A wording. | ICH Q1E (2003), Appendix A | **known limitation** 2026-10-29 (decided by Shashank). Q1E (2003) Appendix A, printed p. 8, says only "X = Period covered by long-term data" (quote checked by the user); it does not say how to take X when batches have different coverage. Taking the shortest batch coverage is kept as a conservative reading. Stated in every stability result as `X_DEFINITION_LIMITATION_NOTE` (URS-STAB-021), shown in the warning box (URS-UI-011). |
+| PC-STAB-06 | `ich-stats-rules` skill (ICH Q1 consolidation note); `criteria.py` (`GUIDELINE_VERSIONS["stability"]`) | ICH Q1 is being consolidated (Step 2 draft, April 2025). Q1E is kept as the rule set until the final text is confirmed; record which text 1.0.0 follows. | ICH Q1 final (Step 4) text, if adopted | **known limitation** 2026-10-29 (decided by Shashank). 1.0.0 follows ICH Q1A(R2) and ICH Q1E (Step 4, 2003). The consolidated ICH Q1 is a Step 2 draft (11 April 2025), not final, and is not applied. Re-check trigger: ICH Q1 Step 4 publication or FDA adoption. Stated in every stability result as `GUIDELINE_BASIS_LIMITATION_NOTE` (URS-STAB-024), shown in the warning box (URS-UI-011). `GUIDELINE_VERSIONS["stability"]` is unchanged. |
+| PC-STAB-07 | `docs/traceability.md`; GOLD-STAB-001..003 `source` fields | A published worked example for GOLD-STAB-004. The current golden cases are independent R output on dummy data. | Published shelf-life example with batch data and results | **known limitation** 2026-10-29 (decided by Shashank, 2026-10-29). GOLD-STAB-001..003 are independent base R output (`lm`/`anova`) on dummy data; Q1E and the Q1 draft give graphs only, so no published example with batch data is in hand. A published-example cross-check is planned for v1.1. Stated in every stability result as `VALIDATION_LIMITATION_NOTE` (URS-STAB-025), shown in the warning box (URS-UI-011). |
+| PC-STAB-08 | `criteria.py` (`GUIDELINE_VERSIONS["stability"]`); URS-STAB-026 | The stability stamp (decided by Shashank, 2026-10-29) uses the date shown on each document. ICH Q1E: Step 4, 6 February 2003 (recorded under PC-STAB-01). The ICH Q1A(R2) day and month are not recorded in this register, so the stamp gave "Step 4, 2003". | ICH Q1A(R2) (2003), cover page | **confirmed** 2026-10-29 (decided by Shashank, 2026-10-29; checked by the user against the PDF). ICH Q1A(R2) cover page: "Current Step 4 version dated 6 February 2003". The stamp (`GUIDELINE_VERSIONS["stability"]`, URS-STAB-026) now reads "ICH Q1A(R2) (Step 4, 6 February 2003) + ICH Q1E (Step 4, 6 February 2003)"; "pending confirmation" removed from `criteria.py` and URS-STAB-026. Shipped in 0.8.0. |
+| PC-DISS-01 | `criteria.py` (`BOOTSTRAP_CI_LEVEL`); `core/dissolution.py` (`BOOTSTRAP_METHOD_NOTE`, `bootstrap_f2`, module docstring); `api.py` (`/dissolution` docstring); URS-DISS-007; `ich-stats-rules` skill §2 ("ask which agency's expectation applies"); `sample_data/README.md` | The bootstrap f2 method: percentile 90% interval, similarity when the 5th percentile is at least 50, units resampled with replacement per product. Also which agency's expectation applies. | Target agency's text on bootstrap f2; Shah et al., Pharm Res 1998 (full paper) | **known limitation** 2026-10-29 (decided by Shashank, 2026-10-29; quotes confirmed by the user, PDF not reopened). FDA 1997 does not mention bootstrap f2. Section V.B, pp. 9-10: "In instances where within batch variation is more than 15% CV, a multivariate model independent procedure is more suitable." Bootstrap f2 stays supplementary and provisional (Shah et al. 1998); the FDA-named multivariate (MSD) method is not in v1. Logic unchanged. Stated on every bootstrap result as `BOOTSTRAP_LIMITATION_NOTE` (URS-DISS-013), shown in the warning box. Agency question answered by PC-GEN-01. |
+| PC-DISS-02 (unmarked) | `core/dissolution.py` docstrings ("section V") | The section number for the dissolution profile comparison rules (f1, f2, 85% cut-off, CV limits, rapid dissolution). | FDA IR dissolution guidance (1997) | **confirmed** 2026-10-29 (decided by Shashank, 2026-10-29; quotes confirmed by the user). FDA, Dissolution Testing of Immediate Release Solid Oral Dosage Forms (1997), section V.A, pp. 8-9: "Determine the dissolution profile of two products (12 units each)…" and "Only one measurement should be considered after 85% dissolution of both the products." Every "section V" citation in `core/dissolution.py` and `criteria.py` now reads V.A; URS-DISS-001..006 and 008 cite V.A, pp. 8-9. |
+| PC-DISS-03 (unmarked) | `criteria.py` (`CV_EARLY_MAX_TIME_MIN`, `RAPID_DISSOLUTION_TIME_MIN`) | "Earlier time points (for example up to 15 minutes)" is implemented as t ≤ 15 min for the 20% CV limit. Confirm the wording, and that this reading is acceptable. | FDA IR dissolution guidance (1997) | **known limitation** 2026-10-29 (decided by Shashank, 2026-10-29; quote confirmed by the user). Section V.A: "the percent coefficient of variation at the earlier time points (e.g., 15 minutes) should not be more than 20%, and at other time points should not be more than 10%." The 15 minutes is an example; t <= 15 min is this tool's reading. Stated in every result with f1/f2 as `CV_EARLY_LIMITATION_NOTE` (URS-DISS-011), shown in the warning box. |
+| PC-DISS-04 | `docs/traceability.md` (URS-DISS-002, URS-DISS-007); GOLD-DISS-001 | A published f1/f2 worked example to replace the hand calculation in GOLD-DISS-001, and a bootstrap golden case against an independent implementation (for example R bootf2). | Published worked example; independent software output | **known limitation** 2026-10-29 (decided by Shashank, 2026-10-29). Correction to the decision's premise: GOLD-DISS-001 is a hand calculation, not R output, and there is no bootstrap golden case. Its f1/f2 were reproduced in base R on 2026-10-29 (f2 70.597718524, f1 5.572755418; expected 70.598 and 5.573, tolerance 0.001). Since 0.8.0 (decided by Shashank, 2026-10-29) `tests/golden/r/dissolution_gold.R` (base R, R 4.6.1) reproduces GOLD-DISS-001 and `tests/golden/r/merge_dissolution_gold.py` writes its values into the JSON; regenerated 2026-10-29 with an empty `git diff tests/golden/data`. Note now reads: cross-checked against base R; published example planned for v1.1. There is still no bootstrap golden case. Stated in every result with f1/f2 as `VALIDATION_LIMITATION_NOTE` (URS-DISS-014), shown in the warning box. |
+| PC-DISS-05 | `criteria.py` (`DISSOLUTION_MIN_TIME_POINTS`); `core/dissolution.py` (fewer-than-3-points warning); URS-DISS-010 | The subsection and page for "most suitable for dissolution profile comparison when three to four or more dissolution time points are available" (quote confirmed by the user 2026-10-29; location not given). | FDA IR dissolution guidance (1997) | **confirmed** 2026-10-29 (decided by Shashank, 2026-10-29; checked by the user against the PDF). FDA, Dissolution Testing of Immediate Release Solid Oral Dosage Forms (1997), section V.A, p. 9. `criteria.py` comment, the warning text in `core/dissolution.py`, URS-DISS-010 and the `ich-stats-rules` skill cite V.A, p. 9; "pending confirmation" removed, so the warning is no longer promoted under URS-UI-011 but is still shown in its own warning box. Shipped in 0.8.0. |
+| PC-DISS-06 (unmarked) | `criteria.py` (`F2_SIMILAR_MIN`); `core/dissolution.py` (`compare_profiles`: `f2_value >= limit`; `bootstrap_f2`: `lower >= F2_SIMILAR_MIN`); URS-DISS-012 | Whether f2 = 50 exactly is similar. The guidance says "f2 values greater than 50 (50-100)" (quote confirmed by the user). | FDA IR dissolution guidance (1997) | **known limitation** 2026-10-29 (decided by Shashank). The code treats f2 = 50 exactly, and a bootstrap lower bound of exactly 50, as similar (reads 50-100 as inclusive). Logic unchanged. Stated in every result with f1/f2 as `F2_BOUNDARY_LIMITATION_NOTE` (URS-DISS-012), shown in the warning box. |
+| PC-BE-01 | `criteria.py` (`BE_ROUND_DECIMALS` "confirm for the target agency", `BE_ROUNDING_MODE`); `core/be.py` (`be_decision`, result notes); URS-BE-016; `tests/golden/r/be_gold.R`; `sample_data/generate_be.R`; `ich-stats-rules` skill §3 | The rule for rounding CI limits before comparing them with 80.00–125.00%: number of decimals, and round half up or another rule. | Target agency's BE guidance | **confirmed** 2026-11-03, with a **known limitation** (decided by Shashank, 2026-11-03; quotes confirmed by the user, PDFs not reopened). FDA, Statistical Approaches to Establishing Bioequivalence (May 2026), I.B footnote 6, p. 3: "the rounded confidence interval value should be at least 80.00 percent and not more than 125.00 percent." `BE_ROUND_DECIMALS` stays 2. EMA 4.1.8, p. 15/27, "when rounded to two decimal places", is a note only. Known limitation: no guidance states the rounding mode, so round half up (`BE_ROUNDING_MODE`) is this tool's choice; logic unchanged. Stated in every BE result as `ROUNDING_LIMITATION_NOTE` (URS-BE-020), shown in the warning box (URS-UI-011). "Placeholder" and "confirm for the target agency" removed from `criteria.py`, `core/be.py`, URS-BE-016, `be_gold.R` and `generate_be.R` comments. |
+| PC-BE-02 | `criteria.py` (`BE_AUC0INF_DECISION_MAKING`); `core/be.py` (result notes); URS-BE-014 | Whether AUC0-inf is a decision-making parameter; agencies differ (FDA vs EMA). | Target agency's BE guidance | **confirmed** 2026-11-03, with a **known limitation** (decided by Shashank, 2026-11-03; quotes confirmed by the user, PDFs not reopened). `BE_AUC0INF_DECISION_MAKING` stays True. FDA, Statistical Approaches to Establishing Bioequivalence (May 2026), II.C.2, p. 13, is titled "Statistical Information and Implementation of Criteria for PK Measures (AUC0-t, AUC0-∞, and Cmax)". Notes only: ICH M13A 2.2.2.2, p. 11 lists AUC(0-inf) as an additional parameter, not primary; EMA 4.1.8, p. 15/27 analyses only AUC(0-t) and Cmax. Known limitation: the FDA ANDA PK-endpoints guidance cited in footnote 6 was not checked. Stated in every BE result that analyses AUC0-inf (`auc0inf_limitation_note`, URS-BE-021), shown in the warning box. URS-BE-014 cites FDA II.C.2. |
+| PC-BE-03 (unmarked) | `core/be.py` docstrings; `docs/traceability.md` open-confirmations list | Section numbers for the 2x2 ANOVA model, the equivalence of the 90% CI and TOST at alpha 0.05, and the within-subject CV formula. | ICH M13A (2024); FDA BE statistics guidance | **confirmed** 2026-11-03 (decided by Shashank, 2026-11-03; quotes confirmed by the user, PDFs not reopened). ICH M13A (2024) 2.2.3.1, pp. 11-12 (90% CI equivalent to TOST at 5%, log transformation); 2.2.3.2, p. 12 (sequence, subject within sequence, period, formulation effects); 2.2.4, p. 13 (80.00-125.00%); FDA, Statistical Approaches to Establishing Bioequivalence (May 2026), II.C.1.a, p. 13 (TOST, Schuirmann 1987). The within-subject CV formula 100*sqrt(exp(s^2)-1) appears only in EMA 4.1.10, p. 17/27 (highly variable drug context) and is cited there as the formula source, with that note. Cited in `criteria.py`, `core/be.py` docstrings and URS-BE-001..003. Also new (same decision): ICH M13A 2.2.3.1, p. 12, a crossover study is not acceptable with fewer than 12 evaluable subjects; refused since 0.9.0 (URS-BE-019, `BE_MIN_EVALUABLE_SUBJECTS`). Every golden and sample BE dataset already had at least 12 subjects; the unit-test fixture and the UI BE template (8 subjects) gained 4 dummy subjects. |
+| PC-BE-04 | `docs/traceability.md`; GOLD-BE-001..003 `source` fields | A published 2x2 crossover worked example. The current golden cases are independent R output on seeded dummy data. | Published BE worked example with subject data | **known limitation** 2026-11-03 (decided by Shashank, 2026-11-03). GOLD-BE-001..003 are independent base R output (`tests/golden/r/be_gold.R`) on seeded dummy data; a published example (Schutz et al. 2014) is planned for v1.1. Stated in every BE result as `VALIDATION_LIMITATION_NOTE` (URS-BE-022), shown in the warning box. |
+| PC-GEN-01 | Prerequisite for PC-DISS-01, PC-BE-01 and PC-BE-02 | Which target agency (or agencies) the tool assumes, recorded as a URS requirement. | User decision | **confirmed** 2026-10-29 (decided by Shashank, 2026-10-29): the target agency is US FDA, with ICH as the harmonised base; EMA differences are notes only. Recorded as URS-GEN-005 and `criteria.TARGET_AGENCY`. PC-BE-01 and PC-BE-02 remain open, now against FDA text. |
+
+## Out of scope for v1 (not blocking 1.0.0)
+
+These are deliberate limits, already refused with "not supported in v1". They are listed so
+they are not mistaken for open items; they are not closed by 1.0.0.
+
+- Stability: attributes expected to increase or to move either way (URS-STAB-006), and the
+  ICH Q1E Appendix A branches other than "no significant change at accelerated, statistical
+  analysis performed" (URS-STAB-007).
+- Bioequivalence: replicate designs, parallel designs and reference-scaled limits
+  (URS-BE-004 to 006).
+
+## Planned for v1.1 (not in 1.0.0)
+
+Features deliberately left out of 1.0.0. They are not known limitations of the calculations
+and do not change any calculated result; they are not register items.
+
+- PDF report (`src/cmc_stats/report.py`, ReportLab), stamping app version, guideline version
+  and input hash. Decided by Shashank, 2026-11-04: not part of 1.0.0, planned for v1.1. No URS
+  requirement depends on it: the traceability stamp (URS-GEN-002) and source-file record
+  (URS-GEN-003) are carried by `models.ResultMetadata` on every result and shown in the UI.
+  The PDF report will get its own URS ID when it is built.
+
+## Definition of 1.0.0
+
+1.0.0 may be released only when every row in the register has been closed in one of two ways.
+
+**Confirmed against the source**
+- The item is checked against the named source document. The register records the document
+  title and version, section and page.
+- Code, `criteria.py` comments, docstrings, URS and docs cite that section, and the
+  "provisional", "placeholder" or "pending" wording for the item is removed.
+- If the confirmed rule differs from the current implementation, the code changes under a
+  URS ID with tests. Golden expected values are never edited to make a test pass; a changed
+  calculated result is called out at the top of the CHANGELOG entry.
+
+**Recorded as a known limitation**
+- The register records why the item cannot be confirmed or is accepted as it is, the
+  decision date and who decided.
+- The limitation stays visible in the UI: it appears in the warning box on every affected
+  result. URS-UI-011 currently promotes notes containing "pending confirmation" or
+  "provisional", so recording the first known limitation also means extending that rule (and
+  its test) to the limitation wording.
+- The limitation is listed in the sample-data README where relevant, and in the CHANGELOG
+  entry for 1.0.0.
+
+**For every item, either way**
+- The register row's status changes from **open** to **confirmed** or **known limitation**,
+  with its evidence (section and page, or the justification).
+- `/verify` and `/gxp-review` pass with no open issues, and `/validation-docs` has been run.
+- The "Open confirmations" list in `docs/traceability.md` is empty, or lists only known
+  limitations.
+
+## Release decision (1.0.0, 2026-11-06)
+
+Decided by Shashank, 2026-11-06: release 1.0.0.
+
+- Register: every row above is **confirmed** or **known limitation**; none is open.
+- `/gxp-review`: ran on v0.9.0 with all 8 checks clear (reported by Shashank, 2026-11-06).
+  Only documentation and the version number changed after 0.9.0 (0.9.1: docs only; 1.0.0:
+  version bump, CHANGELOG, README, this register and the traceability header). No code,
+  `criteria.py` value, golden expected value or sample file changed. Decided by Shashank,
+  2026-11-06: no second `/gxp-review` is needed for 1.0.0, so the 0.9.0 review is the
+  release review. Record (summary as reported by the user, not raw output):
+  [`docs/reviews/gxp-review-0.9.0.md`](reviews/gxp-review-0.9.0.md).
+- `/validation-docs`: ran on v0.9.1 (2026-11-06); the 1.0.0 change touches no requirement,
+  so only the traceability header was updated.
+- `/verify`: PASS on v1.0.0 (2026-11-06): ruff format, ruff check, mypy strict, pytest 397
+  passed, 10 golden, coverage 99.25%.
+
+## Local references
+
+Guideline PDFs used to close items go in `references/`, which is git-ignored so copyrighted
+documents are never committed. Name files so the register can point to them, for example
+`references/ICH_Q1E_2003.pdf` or `references/ICH_Q1A_R2_2003.pdf`.

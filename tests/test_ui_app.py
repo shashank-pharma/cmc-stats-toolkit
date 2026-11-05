@@ -11,6 +11,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from cmc_stats import ui_helpers
+from cmc_stats.core import be, dissolution, stability
 from cmc_stats.models import DISCLAIMER
 
 APP = str(Path(__file__).parents[1] / "src" / "cmc_stats" / "ui.py")
@@ -30,6 +31,7 @@ def set_stability(at: AppTest) -> None:
     at.text_input(key="stab_attribute").input("Assay")
     at.text_input(key="stab_unit").input("% label claim")
     at.selectbox(key="stab_direction").set_value("decrease")
+    at.selectbox(key="stab_storage").set_value("room_temperature")
     at.number_input(key="stab_lower_limit").set_value(95.0)
     at.selectbox(key="stab_sig_change").set_value(False)
     at.selectbox(key="stab_stats_done").set_value(True)
@@ -49,6 +51,7 @@ def test_run_disabled_until_file_and_settings_given(app: AppTest) -> None:
     assert app.selectbox(key="be_design").value is None
     assert app.selectbox(key="stab_direction").value is None
     assert app.number_input(key="stab_lower_limit").value is None
+    assert app.selectbox(key="stab_storage").value is None
     app.checkbox(key="example_stability").check().run()
     assert app.button(key="run_stability").disabled
     set_stability(app)
@@ -71,8 +74,9 @@ def test_stability_run_shows_conclusion_tables_chart_and_file_hash(app: AppTest)
     assert any(digest in c.value for c in tab.caption)
 
 
-def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
-    """URS-UI-011: BE placeholder notes appear in warning boxes."""
+def test_be_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
+    """URS-UI-011, URS-BE-020, 021, 022: the BE known-limitation notes appear in warning boxes
+    (the template has AUC0-inf)."""
     app.checkbox(key="example_be").check()
     app.selectbox(key="be_design").set_value("2x2_crossover")
     app.selectbox(key="be_limits").set_value("average")
@@ -80,9 +84,72 @@ def test_be_run_shows_pending_confirmation_warning(app: AppTest) -> None:
     app.button(key="run_be").click().run()
     assert not app.exception
     tab = app.tabs[TABS["be"]]
-    assert any("pending confirmation" in w.value for w in tab.warning)
+    shown = [w.value for w in tab.warning]
+    assert be.ROUNDING_LIMITATION_NOTE in shown
+    assert be.VALIDATION_LIMITATION_NOTE in shown
+    assert be.auc0inf_limitation_note() in shown
     assert any("Bioequivalent" in m.value for m in tab.markdown)
     assert tab.get("plotly_chart")
+
+
+def test_stability_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
+    """URS-UI-011, URS-STAB-020, 021, 024, 025: the known-limitation notes appear in warning boxes
+    on a stability result."""
+    set_stability(app)
+    app.run()
+    app.button(key="run_stability").click().run()
+    assert not app.exception
+    shown = [w.value for w in app.tabs[TABS["stability"]].warning]
+    assert stability.APPENDIX_A_BRANCH_LIMITATION_NOTE in shown
+    assert stability.X_DEFINITION_LIMITATION_NOTE in shown
+    assert stability.GUIDELINE_BASIS_LIMITATION_NOTE in shown
+    assert stability.VALIDATION_LIMITATION_NOTE in shown
+
+
+def test_dissolution_run_shows_known_limitations_in_warning_box(app: AppTest) -> None:
+    """URS-UI-011, URS-DISS-011, 012, 014: the known-limitation notes appear in warning boxes
+    on a dissolution result."""
+    app.checkbox(key="example_dissolution").check().run()
+    app.button(key="run_dissolution").click().run()
+    assert not app.exception
+    shown = [w.value for w in app.tabs[TABS["dissolution"]].warning]
+    assert dissolution.CV_EARLY_LIMITATION_NOTE in shown
+    assert dissolution.F2_BOUNDARY_LIMITATION_NOTE in shown
+    assert dissolution.VALIDATION_LIMITATION_NOTE in shown
+
+
+def test_refrigerated_storage_shows_not_supported_error(app: AppTest) -> None:
+    """URS-UI-009, URS-STAB-022: a refrigerated choice is refused with the model's message."""
+    set_stability(app)
+    app.selectbox(key="stab_storage").set_value("refrigerated")
+    app.run()
+    app.button(key="run_stability").click().run()
+    assert not app.exception
+    tab = app.tabs[TABS["stability"]]
+    assert any("not supported in v1" in e.value for e in tab.error)
+    assert not tab.dataframe
+
+
+def test_two_batch_stability_run_shows_q1a_warning(
+    app: AppTest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """URS-UI-011, URS-STAB-017: the confirmed (not pending) Q1A(R2) fewer-than-3-batches
+    warning still reaches the screen in its own warning box."""
+    raw = b"".join(
+        line
+        for line in ui_helpers.template_csv("stability").splitlines(keepends=True)
+        if not line.startswith(b"B003,")
+    )
+    monkeypatch.setattr(ui_helpers, "template_source", lambda area: ("two_batches.csv", raw))
+    set_stability(app)
+    app.run()
+    app.button(key="run_stability").click().run()
+    assert not app.exception
+    tab = app.tabs[TABS["stability"]]
+    assert any(
+        "ICH Q1A(R2), Selection of Batches" in w.value and "2.1.3" in w.value for w in tab.warning
+    )
+    assert any("Proposed shelf-life" in m.value for m in tab.markdown)
 
 
 def test_unsupported_choice_shows_error_and_no_result(app: AppTest) -> None:

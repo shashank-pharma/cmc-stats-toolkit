@@ -3,7 +3,7 @@
 # Run from the repository root: Rscript sample_data/generate_be.R
 # Base R only; the generator and analysis are the same as tests/golden/r/be_gold.R
 # (lm(log(y) ~ sequence + subject + period + treatment), 90% confint, half-up rounding to
-# 2 decimals as the placeholder rule pending confirmation against the target agency text).
+# 2 decimals; FDA (May 2026) I.B footnote 6; the half-up mode is a known limitation, URS-BE-020).
 #
 # Seed rule: for each file, the first seed from 1 upwards whose analysis gives the stated
 # outcome for every parameter (all pass for the CV 20% file; overall BE fails for the CV 45%

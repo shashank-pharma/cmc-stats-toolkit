@@ -115,6 +115,7 @@
         "attribute": "Assay",
         "unit": "% label claim",
         "direction": "decrease",
+        "storage_condition": "room_temperature",
         "lower_limit": 95.0,
         "significant_change_at_accelerated": false,
         "statistical_analysis_performed": true
@@ -123,7 +124,7 @@
         "source": "independent R output, same data as GOLD-STAB-003",
         "model": "separate",
         "governing_batch": "B003",
-        "crossing_months": 24.62037974,
+        "crossing_months": 24.33389941,
         "proposed_shelf_life_months": 24
       }
     },
@@ -133,6 +134,7 @@
         "attribute": "Assay",
         "unit": "% label claim",
         "direction": "decrease",
+        "storage_condition": "room_temperature",
         "lower_limit": 95.0,
         "significant_change_at_accelerated": false,
         "statistical_analysis_performed": true
@@ -151,6 +153,7 @@
         "attribute": "Assay",
         "unit": "% label claim",
         "direction": "decrease",
+        "storage_condition": "room_temperature",
         "lower_limit": 95.0,
         "significant_change_at_accelerated": false,
         "statistical_analysis_performed": true

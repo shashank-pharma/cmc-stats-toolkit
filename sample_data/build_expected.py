@@ -25,6 +25,7 @@ STABILITY_SETTINGS = {
     "attribute": "Assay",
     "unit": "% label claim",
     "direction": "decrease",
+    "storage_condition": "room_temperature",
     "lower_limit": 95.0,
     "significant_change_at_accelerated": False,
     "statistical_analysis_performed": True,

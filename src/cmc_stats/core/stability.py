@@ -3,11 +3,14 @@
 Rules follow ICH Q1E (2003), Evaluation for Stability Data, Appendices A and B, as summarised
 in the ich-stats-rules skill. v1 covers an attribute expected to decrease
 (one-sided 95% lower bound against a lower limit) and the Appendix A branch "no significant
-change at accelerated, statistical analysis performed". All values are kept at full precision;
+change at accelerated, statistical analysis performed" at room temperature (Q1E 2.4.1.2 and
+Appendix A; refrigerated, freezer and other branches are refused at input and noted as known
+limitations, URS-STAB-020 to 024). All values are kept at full precision;
 only the proposed shelf-life is rounded down to whole months.
 
 Design matrices (k batches, N results):
-- full: one intercept and one slope per batch (2k columns); equals separate per-batch fits
+- full: one intercept and one slope per batch (2k columns); same lines as separate per-batch
+  fits, but one pooled mean square error with df N - 2k (used when slopes differ, Q1E B.2.2.1)
 - common slope: one intercept per batch and one shared slope (k + 1 columns)
 - pooled: one intercept and one slope for all batches (2 columns)
 """
@@ -38,10 +41,32 @@ from cmc_stats.models import (
     make_metadata,
 )
 
+APPENDIX_A_BRANCH_LIMITATION_NOTE = (
+    "Known limitation: the extrapolation cap uses only the branch room temperature, no "
+    "significant change at accelerated, statistical analysis performed (ICH Q1E 2.4.1.2 and "
+    "Appendix A: Y up to 2X, but not exceeding X + 12 months). The refrigerated branch (up to "
+    "1.5X, but not exceeding X + 6 months, Q1E 2.5.1.1), freezer storage and the other "
+    "Appendix A branches are not supported in v1 and are refused at input."
+)
+X_DEFINITION_LIMITATION_NOTE = (
+    "Known limitation: X, the period covered by long-term data (ICH Q1E Appendix A), is taken "
+    "as the shortest of the batches' last time points. This is a conservative reading; Q1E "
+    "does not define X further."
+)
+GUIDELINE_BASIS_LIMITATION_NOTE = (
+    "Known limitation: the rules follow ICH Q1A(R2) and ICH Q1E (Step 4, 2003). The "
+    "consolidated ICH Q1 is a Step 2 draft (11 April 2025), not final, and is not applied; "
+    "re-check these rules when ICH Q1 reaches Step 4 or is adopted by FDA."
+)
+VALIDATION_LIMITATION_NOTE = (
+    "Known limitation: the shelf-life calculation is checked against independent base R "
+    "output (lm, anova) on dummy data (GOLD-STAB-001..003); no published worked example with "
+    "batch data has been checked. A published-example cross-check is planned for v1.1."
+)
 SEPARATE_MODEL_NOTE = (
-    "Slopes differ: each batch is evaluated on its own regression (own residual error, "
-    "df = n - 2), the ICH Q1E Appendix B.1 single-batch approach applied per batch; the "
-    "earliest crossing governs. Provisional, pending confirmation against the Q1E text."
+    "Slopes differ: each batch's bound uses its own intercept and slope with the pooled mean "
+    "square error of the full model (df = N - 2k), ICH Q1E Appendix B.2.2.1; the earliest "
+    "crossing governs."
 )
 
 
@@ -145,28 +170,29 @@ def fit_batches(data: StabilityInput) -> tuple[BatchFit, ...]:
 
 
 def select_model(slope_p: float, intercept_p: float | None) -> StabilityModel:
-    """Choose the model from the poolability p-values (URS-STAB-002).
+    """Choose the model from the poolability p-values (URS-STAB-002, URS-STAB-019).
 
-    ICH Q1E (2003), Appendix B, at ``POOLABILITY_ALPHA`` (0.25): slope p below alpha ->
-    separate; otherwise intercept p below alpha -> common slope; otherwise pooled. A p-value
-    equal to alpha counts as poolable.
+    ICH Q1E (2003), Appendix B.2.2.1, at ``POOLABILITY_ALPHA`` (0.25): slope p at or below
+    alpha -> separate; otherwise intercept p at or below alpha -> common slope; otherwise
+    pooled. Only p > 0.25 pools (ICH Q1A(R2) 2.1.9 and 2.2.9, "more than 0.25"; user decision
+    2026-10-29).
 
     Raises:
         ValueError: slopes are poolable but no intercept p-value was given.
     """
     alpha = criteria.POOLABILITY_ALPHA
-    if slope_p < alpha:
+    if slope_p <= alpha:
         return "separate"
     if intercept_p is None:
         raise ValueError("an intercept p-value is required when slopes are poolable")
-    return "common_slope" if intercept_p < alpha else "pooled"
+    return "common_slope" if intercept_p <= alpha else "pooled"
 
 
 def poolability(data: StabilityInput) -> PoolabilityResult:
-    """ANCOVA tests of slope then intercept equality at 0.25 (URS-STAB-002, URS-STAB-005).
+    """ANCOVA tests of slope then intercept equality at 0.25 (URS-STAB-002, 005, 019).
 
-    ICH Q1E (2003), Appendix B. Slopes: common-slope vs full model, F on the
-    full model's residual error. Intercepts, only when slope p >= 0.25: pooled vs common-slope
+    ICH Q1E (2003), Appendix B.2.2.1. Slopes: common-slope vs full model, F on the
+    full model's residual error. Intercepts, only when slope p > 0.25: pooled vs common-slope
     model, F on the common-slope model's residual error (sequential ANCOVA).
 
     Raises:
@@ -176,7 +202,7 @@ def poolability(data: StabilityInput) -> PoolabilityResult:
     full, common, pooled = _model_fits(data)
     slopes = _f_test(common.rss, full.rss, k - 1, full)
     intercepts = None
-    if slopes.p_value >= criteria.POOLABILITY_ALPHA:
+    if slopes.p_value > criteria.POOLABILITY_ALPHA:
         intercepts = _f_test(pooled.rss, common.rss, k - 1, common)
     return PoolabilityResult(
         alpha=criteria.POOLABILITY_ALPHA,
@@ -187,22 +213,30 @@ def poolability(data: StabilityInput) -> PoolabilityResult:
 
 
 def _lines(data: StabilityInput, model: StabilityModel) -> tuple[_Line, ...]:
-    """The mean line(s) whose bound decides the shelf-life under ``model``."""
+    """The mean line(s) whose bound decides the shelf-life under ``model``.
+
+    Separate lines are the full model's lines: each batch's own intercept and slope with the
+    pooled mean square error calculated from all batches (ICH Q1E Appendix B.2.2.1). The full
+    design is block diagonal, so each batch's coefficients and (X'X)^-1 block equal its own
+    fit; taking them from that fit keeps identical batches bit-identical (ties stay exact),
+    and the full model supplies the residual sum of squares and df N - 2k.
+    """
     k = len(data.batches)
+    full, common, pooled = _model_fits(data)
     if model == "pooled":
-        _, _, pooled = _model_fits(data)
         return (_Line(None, pooled, np.array([1.0, 0.0]), np.array([0.0, 1.0])),)
     if model == "common_slope":
-        _, common, _ = _model_fits(data)
         slope_col = np.zeros(k + 1)
         slope_col[k] = 1.0
         return tuple(
             _Line(b.label, common, np.eye(k + 1)[i], slope_col) for i, b in enumerate(data.batches)
         )
-    return tuple(
-        _Line(b.label, _batch_ols(data, i), np.array([1.0, 0.0]), np.array([0.0, 1.0]))
-        for i, b in enumerate(data.batches)
-    )
+    lines = []
+    for i, b in enumerate(data.batches):
+        own = _batch_ols(data, i)
+        fit = _Fit(coef=own.coef, xtx_inv=own.xtx_inv, rss=full.rss, df=full.df)
+        lines.append(_Line(b.label, fit, np.array([1.0, 0.0]), np.array([0.0, 1.0])))
+    return tuple(lines)
 
 
 def _line(data: StabilityInput, model: StabilityModel, label: str | None) -> _Line:
@@ -229,10 +263,11 @@ def lower_bound(
 ) -> NDArray[np.float64]:
     """One-sided 95% lower confidence bound of the mean line at ``times`` (URS-STAB-003).
 
-    ICH Q1E (2003), Appendix B: mean - t(0.95, df) * SE(mean). Pooled and
-    common-slope lines use that model's residual error and df. Separate lines use the batch's
-    own regression (Appendix B.1 per batch; provisional, pending confirmation against the Q1E
-    text). ``label`` is ``None`` for the pooled line.
+    ICH Q1E (2003), 2.6, p. 7 (lower one-sided 95 percent confidence limit for an attribute
+    known to decrease) and Appendix B.1: mean - t(0.95, df) * SE(mean). Pooled and common-slope
+    lines use that model's residual error and df. Separate lines use each batch's intercept
+    and slope with the pooled mean square error of the full model, df N - 2k (Appendix
+    B.2.2.1). ``label`` is ``None`` for the pooled line.
 
     Raises:
         ValueError: ``label`` does not match the model's lines.
@@ -287,9 +322,12 @@ def crossing_time(data: StabilityInput, model: StabilityModel, label: str | None
 def extrapolation_cap(data: StabilityInput) -> ExtrapolationCap:
     """Appendix A cap: min(2X, X + 12) months (URS-STAB-004, URS-STAB-007, URS-STAB-008).
 
-    ICH Q1E (2003), Appendix A, branch "no significant change at accelerated, statistical
-    analysis performed" (the only branch ``StabilityInput`` accepts). X is the shortest of
-    the batches' last time points (user decision 2026-10-27).
+    ICH Q1E (2003), 2.4.1.2, p. 4, and Appendix A, p. 8: "Y = up to 2X, but not exceeding
+    X + 12 months", branch "no significant change at accelerated, statistical analysis
+    performed" (the only branch ``StabilityInput`` accepts), room temperature only; the
+    refrigerated branch is refused at input (URS-STAB-022; known limitation, URS-STAB-020).
+    X ("period covered by long-term data") is the shortest of the batches' last time points
+    (user decision 2026-10-27; known limitation, URS-STAB-021).
     """
     x = min(max(b.times_months) for b in data.batches)
     factor = criteria.EXTRAPOLATION_FACTOR_STATS
@@ -323,12 +361,13 @@ def estimate_shelf_life(
     timestamp: datetime | None = None,
     source_files: Sequence[SourceFile] = (),
 ) -> StabilityResult:
-    """Full ICH Q1E shelf-life evaluation (URS-STAB-001 to 018, URS-GEN-001 to 003).
+    """Full ICH Q1E shelf-life evaluation (URS-STAB-001 to 026, URS-GEN-001 to 003).
 
     ICH Q1E (2003), Appendices A and B. Steps: per-batch fits; poolability
     at 0.25 (slopes, then intercepts); bound of each line of the chosen model; earliest
     crossing (worst batch governs); Appendix A cap; shelf-life rounded down to whole months.
-    Warns when there are fewer than 3 batches (ICH Q1A(R2), Selection of Batches).
+    Warns when there are fewer than 3 batches (ICH Q1A(R2), Selection of Batches, 2.1.3 and
+    2.2.3).
     ``source_files`` (raw uploads the data came from) are recorded in the metadata only.
     """
     metadata = make_metadata(
@@ -365,7 +404,13 @@ def estimate_shelf_life(
         "common_slope": "common slope, separate intercepts",
         "separate": "separate lines per batch",
     }[model]
-    notes = [f"Model: {model_text} (poolability tested at {pool.alpha})."]
+    notes = [
+        f"Model: {model_text} (poolability tested at {pool.alpha}).",
+        APPENDIX_A_BRANCH_LIMITATION_NOTE,
+        X_DEFINITION_LIMITATION_NOTE,
+        GUIDELINE_BASIS_LIMITATION_NOTE,
+        VALIDATION_LIMITATION_NOTE,
+    ]
     if model == "separate":
         notes.append(SEPARATE_MODEL_NOTE)
     if governing is not None and len(tied) > 1:
@@ -387,9 +432,9 @@ def estimate_shelf_life(
     n = len(data.batches)
     if n < criteria.STABILITY_PRIMARY_BATCHES:
         warnings.append(
-            f"Only {n} batches supplied; ICH Q1A(R2), Selection of Batches (drug substance "
-            f"and drug product) calls for at least {criteria.STABILITY_PRIMARY_BATCHES} "
-            "primary batches (section numbers pending confirmation)."
+            f"Only {n} batches supplied; ICH Q1A(R2), Selection of Batches (2.1.3 drug "
+            f"substance, 2.2.3 drug product) calls for at least "
+            f"{criteria.STABILITY_PRIMARY_BATCHES} primary batches."
         )
 
     who = f"batch {governing} governs" if governing else "all batches"

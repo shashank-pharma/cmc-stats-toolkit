@@ -42,7 +42,7 @@ Area = Literal["dissolution", "stability", "be"]
 AnyResult = DissolutionResult | StabilityResult | BeResult
 
 TEMPLATE_WARNING = "Result from template dummy data, not your data"
-_PROMINENT = re.compile(r"pending confirmation|provisional", re.IGNORECASE)
+_PROMINENT = re.compile(r"pending confirmation|provisional|known limitation", re.IGNORECASE)
 _NUMBER = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?")
 _INTEGER = re.compile(r"[+-]?\d+")
 
@@ -61,6 +61,7 @@ REQUIRED_SETTINGS: dict[Area, tuple[str, ...]] = {
         "unit",
         "direction",
         "lower_limit",
+        "storage_condition",
         "significant_change_at_accelerated",
         "statistical_analysis_performed",
     ),
@@ -129,6 +130,10 @@ def template_csv(area: Area) -> bytes:
             ("S06", "RT", 79.4, 85.0, 1210.5, 1250.9, 1290.4, 1333.7),
             ("S07", "TR", 99.9, 101.2, 1495.5, 1460.0, 1580.2, 1549.3),
             ("S08", "RT", 105.3, 100.1, 1550.8, 1530.4, 1645.6, 1622.0),
+            ("S09", "TR", 93.8, 97.2, 1388.4, 1415.9, 1470.3, 1502.8),
+            ("S10", "RT", 114.6, 109.3, 1688.2, 1650.7, 1781.9, 1740.5),
+            ("S11", "TR", 86.7, 90.1, 1275.3, 1301.8, 1352.6, 1380.2),
+            ("S12", "RT", 101.5, 98.4, 1520.9, 1498.3, 1610.7, 1585.4),
         )
         be_rows = []
         for subject, seq, c_t, c_r, a_t, a_r, i_t, i_r in subjects:
@@ -404,11 +409,10 @@ def run_analysis(
 
 
 def prominent_notes(result: AnyResult) -> list[str]:
-    """Notes, warnings and method notes that are provisional or pending confirmation, in
+    """Notes, warnings and method notes that are provisional, pending confirmation or a known
+    limitation, in
     order and without repeats, for display in warning boxes (URS-UI-011)."""
-    texts = list(result.notes)
-    if isinstance(result, StabilityResult | BeResult):
-        texts += list(result.warnings)
+    texts = list(result.notes) + list(result.warnings)
     if isinstance(result, DissolutionResult) and result.bootstrap is not None:
         texts.append(result.bootstrap.method_note)
     seen: list[str] = []

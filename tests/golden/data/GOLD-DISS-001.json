@@ -1,7 +1,7 @@
 {
   "id": "GOLD-DISS-001",
   "requirement": "URS-DISS-002",
-  "source": "Hand calculation from the f1/f2 formulas in FDA IR dissolution guidance (1997). Starter example only: replace with a published worked example.",
+  "source": "Hand calculation from the f1/f2 formulas in FDA IR dissolution guidance (1997), section V.A, on dummy data; reproduced by tests/golden/r/dissolution_gold.R in base R (R version 4.6.1 (2026-06-24)). Published worked example planned for v1.1 (URS-DISS-014).",
   "inputs": {
     "reference": [28, 52, 70, 82, 91],
     "test": [24, 47, 66, 79, 89]

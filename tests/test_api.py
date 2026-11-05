@@ -168,14 +168,17 @@ def test_non_finite_json_returns_422(client: TestClient, value: float) -> None:
     ("path", "case", "field", "value"),
     [
         ("/stability", "GOLD-STAB-001", "direction", "increase"),
+        ("/stability", "GOLD-STAB-001", "storage_condition", "refrigerated"),
+        ("/stability", "GOLD-STAB-001", "significant_change_at_accelerated", True),
         ("/be", "GOLD-BE-001", "design", "replicate"),
         ("/be", "GOLD-BE-001", "limits", "reference_scaled"),
     ],
 )
 def test_unsupported_options_return_422_with_model_message(
-    client: TestClient, path: str, case: str, field: str, value: str
+    client: TestClient, path: str, case: str, field: str, value: object
 ) -> None:
-    """URS-API-005: the model's "not supported in v1" message reaches the client."""
+    """URS-API-005, URS-STAB-022, URS-STAB-023: the model's "not supported in v1" message
+    reaches the client."""
     inputs = golden_inputs(case)
     inputs[field] = value
     response = client.post(path, json=inputs)
