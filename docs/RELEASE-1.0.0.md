@@ -87,6 +87,22 @@ and do not change any calculated result; they are not register items.
 - The "Open confirmations" list in `docs/traceability.md` is empty, or lists only known
   limitations.
 
+## Release decision (1.0.0, 2026-11-06)
+
+Decided by Shashank, 2026-11-06: release 1.0.0.
+
+- Register: every row above is **confirmed** or **known limitation**; none is open.
+- `/gxp-review`: ran on v0.9.0 with all 8 checks clear (reported by Shashank, 2026-11-06).
+  Only documentation and the version number changed after 0.9.0 (0.9.1: docs only; 1.0.0:
+  version bump, CHANGELOG, README, this register and the traceability header). No code,
+  `criteria.py` value, golden expected value or sample file changed. Decided by Shashank,
+  2026-11-06: no second `/gxp-review` is needed for 1.0.0, so the 0.9.0 review is the
+  release review.
+- `/validation-docs`: ran on v0.9.1 (2026-11-06); the 1.0.0 change touches no requirement,
+  so only the traceability header was updated.
+- `/verify`: PASS on v1.0.0 (2026-11-06): ruff format, ruff check, mypy strict, pytest 397
+  passed, 10 golden, coverage 99.25%.
+
 ## Local references
 
 Guideline PDFs used to close items go in `references/`, which is git-ignored so copyrighted

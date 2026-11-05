@@ -1,5 +1,64 @@
 # Changelog
 
+## 1.0.0 - 2026-11-06
+No calculated result changed since 0.9.0. No code, `criteria.py` value, golden expected value
+or sample file changed; only the version number and documentation. The app version stamped
+in `ResultMetadata` reads 1.0.0; no calculated value, guideline stamp or input hash changes.
+Released under the versioning policy (CHANGELOG 0.5.0): every item in the 1.0.0 register
+(`docs/RELEASE-1.0.0.md`) is confirmed or recorded as a known limitation.
+
+### Release decisions (decided by Shashank, 2026-11-06)
+- Release 1.0.0.
+- `/gxp-review` ran on v0.9.0 with all 8 checks clear. Only documentation changed since, so no
+  second `/gxp-review` was run. Recorded in `docs/RELEASE-1.0.0.md` ("Release decision").
+- `/verify` PASS on v1.0.0: 397 tests, 10 golden, coverage 99.25%.
+
+### Changed
+- Version 1.0.0 in `pyproject.toml`, `src/cmc_stats/__init__.py` and `uv.lock`.
+- `README.md` rewritten: what the tool does, disclaimer, how to run it, validation summary,
+  known limitations and v1.1 roadmap.
+- `docs/traceability.md` header and `docs/RELEASE-1.0.0.md` updated for the release.
+
+### Known limitations (from the register; each shown in the warning box on affected results)
+Stability
+- PC-STAB-04: only the room-temperature, no-significant-change, statistical-analysis branch of
+  the ICH Q1E Appendix A cap is supported; refrigerated (1.5X, not exceeding X + 6) and the
+  other branches are not (URS-STAB-020).
+- PC-STAB-05: X, "the period covered by long-term data", is taken as the shortest batch
+  coverage (URS-STAB-021).
+- PC-STAB-06: rules follow ICH Q1A(R2) and Q1E (Step 4, 2003), not the draft consolidated
+  ICH Q1 (Step 2, April 2025) (URS-STAB-024).
+- PC-STAB-07: stability golden cases are independent base R output on dummy data; a published
+  example is planned for v1.1 (URS-STAB-025).
+
+Dissolution
+- PC-DISS-01: bootstrap f2 is not in FDA 1997; it is supplementary and provisional (Shah et al.
+  1998). The FDA-named multivariate (MSD) method is not in v1 (URS-DISS-013).
+- PC-DISS-03: "earlier time points (e.g., 15 minutes)" is read as t <= 15 min for the 20% CV
+  limit (URS-DISS-011).
+- PC-DISS-04: GOLD-DISS-001 is a hand calculation reproduced in base R; a published example is
+  planned for v1.1. There is no bootstrap golden case (URS-DISS-014).
+- PC-DISS-06: f2 = 50 exactly, and a bootstrap lower bound of exactly 50, count as similar
+  (URS-DISS-012).
+
+Bioequivalence
+- PC-BE-01: no guidance states the CI rounding mode; round half up is this tool's choice
+  (URS-BE-020).
+- PC-BE-02: the FDA ANDA PK-endpoints guidance cited in FDA footnote 6 was not checked
+  (URS-BE-021).
+- PC-BE-04: BE golden cases are independent base R output on seeded dummy data; a published
+  example (Schutz et al. 2014) is planned for v1.1 (URS-BE-022).
+
+### Out of scope for v1 (refused as "not supported in v1"; not register items)
+- Stability: attributes that increase or move either way (URS-STAB-006); Appendix A branches
+  other than the one above (URS-STAB-007).
+- Bioequivalence: replicate and parallel designs, reference-scaled limits (URS-BE-004 to 006).
+
+### Planned for v1.1
+- Published golden examples for stability, dissolution (f1/f2) and BE.
+- PDF report (decided by Shashank, 2026-11-04).
+- Refrigerated stability branch (ICH Q1E Appendix A, 1.5X, not exceeding X + 6 months).
+
 ## 0.9.1 - 2026-11-06
 No calculated result changes; no code changes. Patch bump: documentation only. The app
 version stamped in `ResultMetadata` reads 0.9.1; no calculated value, guideline stamp or

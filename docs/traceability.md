@@ -3,10 +3,12 @@
 Updated by the `/validation-docs` skill. Every requirement needs at least one test.
 
 Test IDs: `GOLD-*` are golden cases in `tests/golden/data/`; `test_<module>::<name>` are tests in
-`tests/`. Last /verify: **PASS 2026-11-06, v0.9.1** (ruff format, ruff check, mypy
+`tests/`. Last /verify: **PASS 2026-11-06, v1.0.0** (ruff format, ruff check, mypy
 strict, pytest 397 passed, 10 golden, coverage 99.25% measured on `src/cmc_stats`). Every row
-was refreshed by /validation-docs on 2026-11-06: all 87 URS IDs have a row naming the
+was refreshed by /validation-docs on 2026-11-06 (v0.9.1): all 87 URS IDs have a row naming the
 implementing function(s) and at least one test, and every URS ID is referenced in `tests/`.
+1.0.0 changed only the version number and documentation, so no row changed; the rows' "Last
+/verify" column (PASS 2026-11-06) holds for v1.0.0.
 
 Sample-data pack (URS-GEN-004): `sample_data/` holds 8 dummy CSVs in the UI template format.
 Expected results come from the golden R outputs (stability), R's own output from
@@ -50,8 +52,10 @@ Open confirmations (provisional until the user checks the guideline text):
   half up is this tool's choice (URS-BE-020); the FDA ANDA PK-endpoints guidance cited in FDA
   footnote 6 was not checked (URS-BE-021); BE golden cases are base R output, published
   example (Schutz et al. 2014) planned for v1.1 (URS-BE-022).
-- No open confirmations remain. /gxp-review ran on v0.9.0 (all 8 checks clear);
-  /validation-docs and /verify ran on 2026-11-06 (v0.9.1). Only the 1.0.0 release steps remain.
+- No open confirmations remain. /gxp-review ran on v0.9.0 (all 8 checks clear); no second
+  review for 1.0.0, as only documentation and the version changed since 0.9.0 (decided by
+  Shashank, 2026-11-06; recorded in docs/RELEASE-1.0.0.md, "Release decision").
+  /validation-docs ran on v0.9.1 and /verify on v1.0.0 (both 2026-11-06).
 
 | Requirement | Implemented in | Tests | Last /verify |
 |---|---|---|---|
