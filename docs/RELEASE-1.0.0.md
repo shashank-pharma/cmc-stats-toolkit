@@ -97,7 +97,8 @@ Decided by Shashank, 2026-11-06: release 1.0.0.
   version bump, CHANGELOG, README, this register and the traceability header). No code,
   `criteria.py` value, golden expected value or sample file changed. Decided by Shashank,
   2026-11-06: no second `/gxp-review` is needed for 1.0.0, so the 0.9.0 review is the
-  release review.
+  release review. Record (summary as reported by the user, not raw output):
+  [`docs/reviews/gxp-review-0.9.0.md`](reviews/gxp-review-0.9.0.md).
 - `/validation-docs`: ran on v0.9.1 (2026-11-06); the 1.0.0 change touches no requirement,
   so only the traceability header was updated.
 - `/verify`: PASS on v1.0.0 (2026-11-06): ruff format, ruff check, mypy strict, pytest 397

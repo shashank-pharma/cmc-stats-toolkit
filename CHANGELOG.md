@@ -11,6 +11,8 @@ Released under the versioning policy (CHANGELOG 0.5.0): every item in the 1.0.0 
 - Release 1.0.0.
 - `/gxp-review` ran on v0.9.0 with all 8 checks clear. Only documentation changed since, so no
   second `/gxp-review` was run. Recorded in `docs/RELEASE-1.0.0.md` ("Release decision").
+  Review record (summary as reported by the user, not raw output):
+  [`docs/reviews/gxp-review-0.9.0.md`](docs/reviews/gxp-review-0.9.0.md).
 - `/verify` PASS on v1.0.0: 397 tests, 10 golden, coverage 99.25%.
 
 ### Changed
@@ -18,6 +20,7 @@ Released under the versioning policy (CHANGELOG 0.5.0): every item in the 1.0.0 
 - `README.md` rewritten: what the tool does, disclaimer, how to run it, validation summary,
   known limitations and v1.1 roadmap.
 - `docs/traceability.md` header and `docs/RELEASE-1.0.0.md` updated for the release.
+- Added `docs/reviews/gxp-review-0.9.0.md`: short record of the v0.9.0 `/gxp-review` run.
 
 ### Known limitations (from the register; each shown in the warning box on affected results)
 Stability
