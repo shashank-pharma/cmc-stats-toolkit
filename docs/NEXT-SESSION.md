@@ -20,6 +20,9 @@ reopened; see CHANGELOG 0.9.0 and docs/RELEASE-1.0.0.md):
 
 Register: every row in docs/RELEASE-1.0.0.md is confirmed or a known limitation.
 
+Decision by Shashank, 2026-11-04: the PDF report is not in 1.0.0; planned for v1.1 (see
+docs/RELEASE-1.0.0.md, "Planned for v1.1"). No URS requirement depended on it.
+
 Still to do for 1.0.0:
 1. /gxp-review (no open issues).
 2. /validation-docs. The traceability matrix got targeted edits only (new rows URS-BE-019..022,

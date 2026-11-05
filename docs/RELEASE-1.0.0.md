@@ -46,6 +46,17 @@ they are not mistaken for open items; they are not closed by 1.0.0.
 - Bioequivalence: replicate designs, parallel designs and reference-scaled limits
   (URS-BE-004 to 006).
 
+## Planned for v1.1 (not in 1.0.0)
+
+Features deliberately left out of 1.0.0. They are not known limitations of the calculations
+and do not change any calculated result; they are not register items.
+
+- PDF report (`src/cmc_stats/report.py`, ReportLab), stamping app version, guideline version
+  and input hash. Decided by Shashank, 2026-11-04: not part of 1.0.0, planned for v1.1. No URS
+  requirement depends on it: the traceability stamp (URS-GEN-002) and source-file record
+  (URS-GEN-003) are carried by `models.ResultMetadata` on every result and shown in the UI.
+  The PDF report will get its own URS ID when it is built.
+
 ## Definition of 1.0.0
 
 1.0.0 may be released only when every row in the register has been closed in one of two ways.

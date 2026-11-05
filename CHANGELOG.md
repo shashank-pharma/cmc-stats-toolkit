@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+No calculated result changes; no code changes.
+
+### Changed (decision by Shashank, 2026-11-04)
+- The PDF report (`src/cmc_stats/report.py`, ReportLab) is not part of 1.0.0 and is planned
+  for v1.1. It was described in `CLAUDE.md` but never built. `CLAUDE.md`, the `gxp-review`
+  skill and `docs/RELEASE-1.0.0.md` ("Planned for v1.1") now say so. It is a planned feature,
+  not a known limitation of the calculations. No URS requirement depended on it (URS-GEN-002
+  and URS-GEN-003 are met by `models.ResultMetadata`).
+
 ## 0.9.0 - 2026-11-03
 Behaviour changes: `BeInput` now refuses fewer than 12 evaluable subjects (ICH M13A 2.2.3.1,
 p. 12; URS-BE-019). 0.8.0 accepted 3 or more, so BE input or `/be` requests with 3 to 11
