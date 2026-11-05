@@ -1,7 +1,18 @@
 # Changelog
 
-## Unreleased
-No calculated result changes; no code changes.
+## 0.9.1 - 2026-11-06
+No calculated result changes; no code changes. Patch bump: documentation only. The app
+version stamped in `ResultMetadata` reads 0.9.1; no calculated value, guideline stamp or
+input hash changes. `/gxp-review` ran on v0.9.0 with all 8 checks clear (reported by
+Shashank, 2026-11-06). Not 1.0.0: the 1.0.0 release steps have not yet been done.
+
+### Changed (validation documents, 2026-11-06)
+- `/validation-docs` run. `/verify` PASS on v0.9.1 (397 tests, 10 golden, coverage 99.25%).
+  Every row of `docs/traceability.md` now shows that result. All 87 URS IDs have a row with
+  the implementing function(s) and at least one test. No requirement lacks a test and no
+  test lacks a requirement. The matrix now names the dissolution golden runner
+  (`test_golden_dissolution::test_dissolution_golden`, GOLD-DISS-001, URS-DISS-002), as it
+  already did for the stability and BE runners. No URS requirement was added or changed.
 
 ### Changed (decision by Shashank, 2026-11-04)
 - The PDF report (`src/cmc_stats/report.py`, ReportLab) is not part of 1.0.0 and is planned
