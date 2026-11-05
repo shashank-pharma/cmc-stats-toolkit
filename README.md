@@ -16,7 +16,7 @@ The target agency is US FDA, with ICH as the harmonised base; EMA differences ar
 notes only (URS-GEN-005). Every result records the app version, guideline version, input
 hash and any random seed in `ResultMetadata`.
 
-Author: shashank, M.Pharm Regulatory Affairs.
+Author: Shashank Limje, M.Pharm Regulatory Affairs.
 
 > **Disclaimer:** Educational and decision-support tool. **Not validated for GxP use.** Do not
 > use its results as the basis for a regulatory submission or a batch release decision.
