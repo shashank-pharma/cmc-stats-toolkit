@@ -16,6 +16,8 @@ The target agency is US FDA, with ICH as the harmonised base; EMA differences ar
 notes only (URS-GEN-005). Every result records the app version, guideline version, input
 hash and any random seed in `ResultMetadata`.
 
+Author: shashank, M.Pharm Regulatory Affairs.
+
 > **Disclaimer:** Educational and decision-support tool. **Not validated for GxP use.** Do not
 > use its results as the basis for a regulatory submission or a batch release decision.
 
@@ -63,8 +65,8 @@ the known limitations).
 
 Every regulatory constant is in `src/cmc_stats/criteria.py` with its guideline and section.
 Each guideline citation was confirmed against its source, or recorded as a known limitation,
-in `docs/RELEASE-1.0.0.md`. `/gxp-review` ran on v0.9.0 with all checks clear; only
-documentation changed after that.
+in `docs/RELEASE-1.0.0.md`. `/gxp-review` ran on v0.9.0 with all checks clear
+(`docs/reviews/gxp-review-0.9.0.md`); only documentation changed after that.
 
 ## Known limitations
 
@@ -101,13 +103,16 @@ parallel BE designs; reference-scaled limits.
   (Schutz et al. 2014).
 - PDF report stamped with app version, guideline version and input hash.
 - Refrigerated stability branch (ICH Q1E Appendix A: Y up to 1.5X, not exceeding X + 6 months).
+- FDA multivariate (MSD) dissolution method.
 
 ## Project documents
 
 - `docs/URS.md`: user requirements
 - `docs/traceability.md`: requirement to code to test matrix
 - `docs/RELEASE-1.0.0.md`: confirmation register and release decision
+- `docs/reviews/gxp-review-0.9.0.md`: `/gxp-review` record for v0.9.0
 - `CHANGELOG.md`: release history
+- `LICENSE`: MIT licence
 
 ## Working with Claude Code
 
@@ -121,3 +126,8 @@ Project skills live in `.claude/skills/`:
 | `/verify` | Lint, types, tests and coverage before every commit |
 | `/validation-docs` | Update URS, traceability matrix and changelog after a feature |
 | `/gxp-review` | Data-integrity review of your changes |
+
+## License
+
+MIT. See `LICENSE`. The licence covers the code only; the not-validated-for-GxP disclaimer
+above still applies.

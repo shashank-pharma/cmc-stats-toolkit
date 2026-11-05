@@ -17,3 +17,6 @@ references/
 
 # macOS Finder metadata
 .DS_Store
+
+# R session history
+.Rhistory
