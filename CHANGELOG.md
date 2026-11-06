@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1 - 2026-11-06
+Documentation only. No calculated result changed since 1.0.0. No code, `criteria.py` value,
+golden expected value or sample file changed. The app version stamped in `ResultMetadata`
+reads 1.0.1; no calculated value, guideline stamp or input hash changes.
+
+### Changed
+- `README.md`: the four screenshot placeholders are replaced with app screenshots
+  (`docs/images/stability.png`, `dissolution.png`, `be.png`, `limitations.png`), and the
+  "Screenshots to be added" line is removed. The screenshots were taken on v1.0.0 with the
+  dummy files in `sample_data/`, so the app header in them reads "Version 1.0.0".
+- Version 1.0.1 in `pyproject.toml`, `src/cmc_stats/__init__.py`, `uv.lock` and `README.md`.
+
 ## 1.0.0 - 2026-11-06
 No calculated result changed since 0.9.0. No code, `criteria.py` value, golden expected value
 or sample file changed; only the version number and documentation. The app version stamped

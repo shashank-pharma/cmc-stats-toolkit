@@ -1,6 +1,6 @@
 # CMC Stats Toolkit
 
-Version 1.0.0. A statistics engine and web app for CMC regulatory work:
+Version 1.0.1. A statistics engine and web app for CMC regulatory work:
 
 - **Stability shelf-life** (ICH Q1A(R2) and ICH Q1E, Step 4, 2003): batch poolability at the
   0.25 significance level (pooled, common slope or separate model), the one-sided 95% confidence
@@ -23,12 +23,25 @@ Author: Shashank Limje, M.Pharm Regulatory Affairs.
 
 ## Screenshots
 
-<!-- Screenshot placeholder: Stability tab, with the result and the regression chart -->
-<!-- Screenshot placeholder: Dissolution tab, with the f1/f2 result and the profile chart -->
-<!-- Screenshot placeholder: Bioequivalence tab, with the 90% CI result -->
-<!-- Screenshot placeholder: the known-limitations warning box on a result -->
+Screenshots taken on v1.0.0 with the dummy files in `sample_data/`.
 
-_Screenshots to be added._
+**Stability:** per-batch and summary tables and the regression chart
+(`stability_b003_faster.csv`: separate lines, batch B003 governs, proposed shelf-life 24 months).
+
+![Stability tab: per-batch table, summary and regression chart](docs/images/stability.png)
+
+**Dissolution:** f1/f2 summary and the mean profile chart (`dissolution_similar.csv`).
+
+![Dissolution tab: f1/f2 summary and profile chart](docs/images/dissolution.png)
+
+**Bioequivalence:** parameter table with the rounded 90% CI and the T/R chart with the
+80.00% and 125.00% limits (`be_24_subjects_cv20.csv`).
+
+![Bioequivalence tab: parameter table and T/R chart with acceptance limits](docs/images/be.png)
+
+**Known limitations:** the warning boxes shown on a result (Dissolution tab).
+
+![Known-limitation warning boxes on the Dissolution tab](docs/images/limitations.png)
 
 ## How to run
 

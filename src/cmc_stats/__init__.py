@@ -3,4 +3,4 @@
 Educational and decision-support use only. Not validated for GxP use.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
